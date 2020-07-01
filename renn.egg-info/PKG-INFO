@@ -1,0 +1,11 @@
+Metadata-Version: 1.2
+Name: renn
+Version: 0.0.1
+Summary: Research tools for Reverse Engineering Neural Networks (RENN).
+Home-page: https://github.com/google-research/reverse-engineering-neural-networks
+Author: Niru Maheswaranathan
+Author-email: nirum@google.com
+License: Apache-2.0
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.6
