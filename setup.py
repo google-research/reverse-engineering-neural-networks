@@ -31,6 +31,8 @@ setup(
     install_requires=[
         'numpy >=1.12',
         'jax',
+        'jaxlib',
+        'tqdm'
     ],
     url='https://github.com/google-research/reverse-engineering-neural-networks',
     license='Apache-2.0',
