@@ -176,6 +176,7 @@ def make_loss_function(network_apply_fun, loss_type = 'xent', num_outputs = 1):
 
   if loss_type == 'xent':
     if num_outputs == 1:
+      logging.info("Using binary Xent loss")
       basic_fun = losses.binary_xent
     else:
       basic_fun = losses.multiclass_xent
