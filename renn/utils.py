@@ -176,7 +176,6 @@ def make_loss_function(network_apply_fun, loss_type = 'xent', num_outputs = 1):
 
   if loss_type == 'xent':
     if num_outputs == 1:
-      print("Using binary Xent loss")
       basic_fun = losses.binary_xent
     else:
       basic_fun = losses.multiclass_xent
@@ -217,9 +216,8 @@ def make_acc_fun(network_apply_fun, num_outputs = 1):
   def accuracy_fun(params, batch):
     all_time_logits = network_apply_fun(params, batch['inputs'])
     end_logits = select_output(all_time_logits, batch['index'])
-    predictions = prediction_function(end_logits)
-
-    accuracies = batch['labels'] == predictions
+    predictions = jnp.squeeze(prediction_function(end_logits))
+    accuracies = (batch['labels'] == predictions).astype(jnp.int32)
     return jnp.mean(accuracies)
 
   return accuracy_fun
