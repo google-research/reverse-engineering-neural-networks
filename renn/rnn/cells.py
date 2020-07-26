@@ -20,7 +20,7 @@ import jax.numpy as jnp
 from jax.tree_util import register_pytree_node
 
 __all__ = ['LinearRNN', 'RNNCell', 'StackedRNN', 'GRU', 'LSTM', 'VanillaRNN',
-           'embedding']
+           'UGRNN', 'embedding']
 
 
 # Aliases for standard initializers and nonlinearities.
@@ -208,6 +208,60 @@ class VanillaRNN(RNNCell):
     linear_update = params['weights']
     return jnp.tanh(linear_update.apply(inputs, state))
 
+class UGRNN(RNNCell):
+  """Update-gate RNN Cell."""
+
+  def __init__(self, num_units, gate_bias=0., w_init=fan_in, b_init=zeros,
+               h_init=zeros):
+    """Update-gate RNN (UGRNN) Cell.
+
+    Args:
+      num_units: int, Number of units in the RNN.
+      gate_bias: float, Bias to add to the update gate (Default: 0.).
+      w_init: Initializer for the recurrent & input weights (Default: fan_in).
+      b_init: Initializer for the bias (Default: zeros).
+      h_init: Initializer for the RNN initial condition (Default: zeros).
+    """
+    self.gate_bias = gate_bias
+    self.w_init = w_init
+    self.b_init = b_init
+    self.h_init = h_init
+    super().__init__(num_units, h_init)
+
+  def init(self, key, input_shape):
+    batch_size, num_inputs = input_shape
+
+    rec_shape = (self.num_units, self.num_units)
+    inp_shape = (self.num_units, num_inputs)
+    bias_shape = (self.num_units,)
+    output_shape = (batch_size, self.num_units)
+
+    def _build_linear_rnn(base_key):
+      base_key, *keys = jax.random.split(base_key, 4)
+      return base_key, LinearRNN(self.w_init(keys[0], inp_shape),
+                                 self.w_init(keys[1], rec_shape),
+                                 self.b_init(keys[2], bias_shape))
+
+    # build internal gates / linear rnns.
+    # we thread the `key` through the helper function `_build_linear_rnn`,
+    # which returns a new key that we then pass to the next function call.
+    key, update_gate = _build_linear_rnn(key)
+    key, cell_state = _build_linear_rnn(key)
+
+    key, key_ic = jax.random.split(key, 2)
+    initial_state = super().init_initial_state(key_ic)
+    params = {'initial_state': initial_state, 'update_gate': update_gate,
+              'cell_state': cell_state}
+    return output_shape, params
+
+  def apply(self, params, inputs, state):
+    update_gate = params['update_gate']
+    cell_state = params['cell_state']
+
+    update = jax.nn.sigmoid(update_gate.apply(inputs, state) + self.gate_bias)
+    cell = jnp.tanh(cell_state.apply(inputs, state))
+
+    return update * state + (1 - update) * cell
 
 class GRU(RNNCell):
   """Gated recurrent unit."""
@@ -243,8 +297,8 @@ class GRU(RNNCell):
                                  self.w_init(keys[1], rec_shape),
                                  self.b_init(keys[2], bias_shape))
 
-    # Build internal gates / linear RNNs.
-    # We thread the `key` through the helper function `_build_linear_rnn`,
+    # build internal gates / linear rnns.
+    # we thread the `key` through the helper function `_build_linear_rnn`,
     # which returns a new key that we then pass to the next function call.
     key, update_gate = _build_linear_rnn(key)
     key, reset_gate = _build_linear_rnn(key)
