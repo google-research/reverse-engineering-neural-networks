@@ -2,3 +2,5 @@ numpy
 jax
 jaxlib
 tqdm
+tensorflow_datasets
+tensorflow
