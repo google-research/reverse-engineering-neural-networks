@@ -18,6 +18,8 @@ import jax
 from jax import flatten_util
 import jax.numpy as jnp
 
+from . import losses
+
 import numpy as np
 import tqdm
 
@@ -137,3 +139,84 @@ def one_hot(labels, num_classes, dtype=jnp.float32):
     one_hot_labels: array with shape (num_examples, num_classes).
   """
   return jnp.array(jnp.array(labels)[:, None] == jnp.arange(num_classes), dtype)
+
+
+def select(sequences, indices):
+  """Given an array of shape (number_of_sequences, sequence_length, element_dimension),
+  and a 1D array specifying which indices of each sequence to select, return
+  a (number_of_sequences, element_dimension)-shaped array with the selected elements.
+
+  Args:
+    sequences: array with shape (number_of_sequences, sequence_length, element_dimension)
+    indices: 1D array with length number_of_sequence
+
+  Returns:
+    selected_elements: array with shape (number_of_sequences, element_dimension)
+  """
+
+  assert len(indices) == sequences.shape[0]
+
+  # shape indices properly
+  indices_shaped = indices[:, jnp.newaxis, jnp.newaxis]
+
+  # select element
+  selected_elements = jnp.take_along_axis(sequences, indices_shaped, axis=1)
+
+  # remove sequence dimension
+  selected_elements = jnp.squeeze(selected_elements, axis=1)
+
+  return selected_elements
+
+def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
+  """ Given the network-function, the basic loss function, and
+  a regularization function, return a loss function which maps a tuple of
+  network parameters and a training batch to a loss value.
+
+  Arguments:
+    network_apply_fun - maps (network_params, batched_inputs) -> network_logits
+    basic_loss_fun - maps (logits, batched_labels) -> scalar loss value
+    regularization_fun - maps network_params -> scalar loss value
+
+  Returns:
+    total_loss_fun - maps (network_params, batch) -> scalar loss value
+  """
+
+  def total_loss_fun(params, batch):
+    """
+    Maps network parameters and training batch to a loss value.
+
+    Args:
+      batch: a dictionary with keys ['inputs', 'index', 'labels']
+        'inputs': sequence of inputs with shape (batch_size, max_sequence_length)
+        'index' : 1d-array storing length of the corresponding input sequence
+        'labels': 1d-array storing label of corresponding input sequence
+
+    Returns:
+      loss: scalar loss averaged over batch
+    """
+
+    all_time_logits = network_apply_fun(params, batch['inputs'])
+    end_logits = select(all_time_logits, batch['index'])
+
+    return basic_loss_fun(end_logits, batch['labels']) + regularization_fun(params)
+
+  return total_loss_fun
+
+def make_acc_fun(network_apply_fun, num_outputs = 1):
+  """ Given a network function and number of outputs, returns an accuracy
+  function """
+
+  if num_outputs == 1:
+    prediction_function = lambda x: (x >= 0.).astype(jnp.int32)
+  else:
+    prediction_function = lambda x: x.argmax(axis=-1).astype(jnp.int32)
+
+  @jax.jit
+  def accuracy_fun(params, batch):
+    all_time_logits = network_apply_fun(params, batch['inputs'])
+    end_logits = select(all_time_logits, batch['index'])
+    predictions = jnp.squeeze(prediction_function(end_logits))
+    accuracies = (batch['labels'] == predictions).astype(jnp.int32)
+    return jnp.mean(accuracies)
+
+  return accuracy_fun
