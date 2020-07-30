@@ -200,6 +200,8 @@ def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
 
     return basic_loss_fun(end_logits, batch['labels']) + regularization_fun(params)
 
+  return total_loss_fun
+
 def make_acc_fun(network_apply_fun, num_outputs = 1):
   """ Given a network function and number of outputs, returns an accuracy
   function """
