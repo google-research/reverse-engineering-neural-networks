@@ -97,6 +97,20 @@ def test_one_hot_empty():
   assert len(utils.one_hot([], 5)) == 0
 
 
+def test_select():
+  """Tests the select function."""
+  sequences = np.stack([
+    [[0, 1], [2, 3], [4, 5]],
+    [[6, 7], [8, 9], [10, 11]],
+  ]);
+
+  indices = np.array([0, 1])
+  assert np.allclose(utils.select(sequences, indices), jnp.array([[0, 1], [8, 9]]))
+
+  indices = np.array([2, 0])
+  assert np.allclose(utils.select(sequences, indices), jnp.array([[4, 5], [6, 7]]))
+
+
 def test_batch_mean():
   """Tests the batch_mean function.
 
