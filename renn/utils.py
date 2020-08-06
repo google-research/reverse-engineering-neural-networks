@@ -202,7 +202,7 @@ def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
 
   return total_loss_fun
 
-def make_acc_fun(network_apply_fun, num_outputs = 1):
+def make_acc_fun(network_apply_fun, num_outputs=1):
   """ Given a network function and number of outputs, returns an accuracy
   function """
 
