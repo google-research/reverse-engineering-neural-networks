@@ -3,7 +3,7 @@
 from collections import Counter
 import itertools
 
-from renn.data import wordpiece_tokenizer_learner_lib as wpt
+from renn.data import wordpiece_tokenizer_learner_lib as vocab_learner
 
 import tensorflow_text as text
 import tensorflow as tf
@@ -29,20 +29,20 @@ def build_vocab(corpus_generator, vocab_size, split_fun=str.split):
 
   # Specify parameters.
   reserved_tokens = (_UNK, _CLS, _SEP)
-  params = wpt.Params(upper_thresh=10000000,
-                      lower_thresh=10,
-                      num_iterations=4,
-                      max_input_tokens=5000000,
-                      max_token_length=50,
-                      max_unique_chars=1000,
-                      vocab_size=vocab_size,
-                      slack_ratio=0.05,
-                      include_joiner_token=True,
-                      joiner=_JOINER,
-                      reserved_tokens=reserved_tokens)
+  params = vocab_learner.Params(upper_thresh=10000000,
+                                lower_thresh=10,
+                                num_iterations=4,
+                                max_input_tokens=5000000,
+                                max_token_length=50,
+                                max_unique_chars=1000,
+                                vocab_size=vocab_size,
+                                slack_ratio=0.05,
+                                include_joiner_token=True,
+                                joiner=_JOINER,
+                                reserved_tokens=reserved_tokens)
 
   # Build the vocabulary.
-  vocab = wpt.learn(word_counts.items(), params)
+  vocab = vocab_learner.learn(word_counts.items(), params)
 
   return vocab
 

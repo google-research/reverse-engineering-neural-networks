@@ -19,5 +19,6 @@ from .rnn.cells import *
 from .rnn.fixed_points import *
 from .rnn.network import *
 from .rnn.unroll import *
+from .serialize import *
 from .utils import *
 from .version import __version__
