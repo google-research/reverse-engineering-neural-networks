@@ -18,7 +18,7 @@ _CLS = '<cls>'
 _SEP = '<sep>'
 
 
-def build_vocab(corpus_generator, vocab_size=2 ** 15, split_fun=str.split):
+def build_vocab(corpus_generator, vocab_size, split_fun=str.split):
   """Builds a vocab file from a text generator."""
 
   # Split documents into words.
@@ -60,7 +60,7 @@ def load_tokenizer(vocab_file, default_value=-1):
 
   # Build tokenizer.
   tokenizer = text.WordpieceTokenizer(static_table,
-                                      suffix_indicator='##',
+                                      suffix_indicator=_JOINER,
                                       max_bytes_per_word=100,
                                       max_chars_per_token=None,
                                       token_out_type=tf.int64,
