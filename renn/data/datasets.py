@@ -1,12 +1,14 @@
 """Datasets."""
 
 import tensorflow_datasets as tfds
+import tensorflow_text as text
+import tensorflow as tf
 
 from renn import utils
 from renn.data.tokenizers import load_tokenizer
 
 
-__all__ = ['imdb']
+__all__ = ['imdb', 'tokenize_fun']
 
 
 def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024):
@@ -21,16 +23,23 @@ def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024):
   return dset
 
 
+def tokenize_fun(tokenizer):
+  """Standard text processing function."""
+  wsp = text.WhitespaceTokenizer()
+  return utils.compose(tokenizer.tokenize, wsp.tokenize, text.case_fold_utf8)
+
+
 def imdb(split, vocab_file, sequence_length=1000, batch_size=64):
-  tokenizer = load_tokenizer(vocab_file)
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('imdb_reviews', split=split)
 
   def _preprocess(d):
     """Applies tokenization."""
+    tokens = tokenize(d['text']).flat_values
     return {
-        'inputs': tokenizer.tokenize(d['text']),
+        'inputs': tokens,
         'labels': d['label'],
-        'index': len(d['text']),
+        'index': tf.size(tokens),
     }
 
   # Shapes for the padded batch.
@@ -41,8 +50,12 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64):
   }
 
   # Apply dataset pipeline.
-  dset = dset.filter(lambda d: len(d['text']) <= sequence_length)
   dset = pipeline(dset, preprocess_fun=_preprocess)
+
+  # Filter out examples longer than the sequence length.
+  dset = dset.filter(lambda d: d['index'] <= sequence_length)
+
+  # Pad remaining examples to the sequence length.
   dset = dset.padded_batch(batch_size, padded_shapes)
 
   return dset
