@@ -83,7 +83,13 @@ def test_embedding():
   assert np.allclose(outputs, emb)
 
 
-@pytest.fixture(scope="module", params=[cells.VanillaRNN, cells.GRU, cells.LSTM, cells.UGRNN])
+@pytest.fixture(scope="module",
+                params=[
+                    cells.VanillaRNN,
+                    cells.GRU,
+                    cells.LSTM,
+                    cells.UGRNN
+                ])
 def rnn_cell(request):
   """Fixture that builds an RNN Cell."""
   base_key = jax.random.PRNGKey(0)

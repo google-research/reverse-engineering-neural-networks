@@ -1,6 +1,7 @@
 numpy
 jax
 jaxlib
+msgpack
 tqdm
 tensorflow_datasets
 tensorflow_text
