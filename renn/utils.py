@@ -18,8 +18,6 @@ import jax
 from jax import flatten_util
 import jax.numpy as jnp
 
-from . import losses
-
 import numpy as np
 import tqdm
 
@@ -35,7 +33,7 @@ __all__ = [
 
 
 def batch_mean(fun, in_axes):
-  """Converts a scalar function to a batched version (maps over multiple inputs).
+  """Converts a function to a batched version (maps over multiple inputs).
 
   This takes a function that returns a scalar (such as a loss function) and
   returns a new function that maps the function over multiple arguments (such
@@ -167,6 +165,7 @@ def select(sequences, indices):
 
   return selected_elements
 
+
 def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
   """ Given the network-function, the basic loss function, and
   a regularization function, return a loss function which maps a tuple of
@@ -202,7 +201,7 @@ def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
 
   return total_loss_fun
 
-def make_acc_fun(network_apply_fun, num_outputs = 1):
+def make_acc_fun(network_apply_fun, num_outputs=1):
   """ Given a network function and number of outputs, returns an accuracy
   function """
 
