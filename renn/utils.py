@@ -28,7 +28,8 @@ __all__ = [
     'fst',
     'snd',
     'optimize',
-    'one_hot'
+    'one_hot',
+    'compose'
 ]
 
 
@@ -76,6 +77,15 @@ def fst(xs):
 def snd(xs):
   """Returns the second element from a list."""
   return xs[1]
+
+
+def compose(*funcs):
+  """Returns a function that is the composition of multiple functions."""
+  def wrapper(x):
+    for func in reversed(funcs):
+      x = func(x)
+    return x
+  return wrapper
 
 
 def optimize(loss_fun, x0, optimizer, num_steps,
