@@ -3,5 +3,6 @@ jax
 jaxlib
 tqdm
 tensorflow_datasets
+tensorflow_text
 tensorflow
 toolz

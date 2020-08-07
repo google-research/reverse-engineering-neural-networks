@@ -3,11 +3,13 @@
 from collections import Counter
 import itertools
 
-from renn.data import wordpiece_tokenizer_learner_lib as learner
+from renn.data import wordpiece_tokenizer_learner_lib as wpt
 
 import tensorflow_text as text
 import tensorflow as tf
 
+
+__all__ = ['build_vocab', 'load_tokenizer']
 
 # Special tokens
 _JOINER = '##'
@@ -16,7 +18,7 @@ _CLS = '<cls>'
 _SEP = '<sep>'
 
 
-def build_vocab(corpus_generator, split_fun=str.split, vocab_size=2 ** 15):
+def build_vocab(corpus_generator, vocab_size=2 ** 15, split_fun=str.split):
   """Builds a vocab file from a text generator."""
 
   # Split documents into words.
@@ -27,20 +29,20 @@ def build_vocab(corpus_generator, split_fun=str.split, vocab_size=2 ** 15):
 
   # Specify parameters.
   reserved_tokens = (_UNK, _CLS, _SEP)
-  params = learner.Params(upper_thresh=10000000,
-                          lower_thresh=10,
-                          num_iterations=4,
-                          max_input_tokens=5000000,
-                          max_token_length=50,
-                          max_unique_chars=1000,
-                          vocab_size=vocab_size,
-                          slack_ratio=0.05,
-                          include_joiner_token=True,
-                          joiner=_JOINER,
-                          reserved_tokens=reserved_tokens)
+  params = wpt.Params(upper_thresh=10000000,
+                      lower_thresh=10,
+                      num_iterations=4,
+                      max_input_tokens=5000000,
+                      max_token_length=50,
+                      max_unique_chars=1000,
+                      vocab_size=vocab_size,
+                      slack_ratio=0.05,
+                      include_joiner_token=True,
+                      joiner=_JOINER,
+                      reserved_tokens=reserved_tokens)
 
   # Build the vocabulary.
-  vocab = learner.learn(word_counts.items(), params)
+  vocab = wpt.learn(word_counts.items(), params)
 
   return vocab
 
