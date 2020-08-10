@@ -39,7 +39,7 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64):
     tokens = tokenize(d['description']).flat_values,  # Note: we ignore 'title'
     return {
         'inputs': tokens,
-        'label': d['label'],
+        'labels': d['label'],
         'index': tf.size(tokens),
     }
 
