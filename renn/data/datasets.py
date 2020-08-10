@@ -8,7 +8,7 @@ from renn import utils
 from renn.data.tokenizers import load_tokenizer
 
 
-__all__ = ['imdb', 'goemotions', 'tokenize_fun']
+__all__ = ['ag_news', 'goemotions', 'imdb', 'tokenize_fun']
 
 
 def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024):
