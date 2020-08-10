@@ -29,6 +29,39 @@ def tokenize_fun(tokenizer):
   return utils.compose(tokenizer.tokenize, wsp.tokenize, text.case_fold_utf8)
 
 
+def ag_news(split, vocab_file, sequence_length=100, batch_size=64):
+  """Loads the ag news dataset."""
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
+  dset = tfds.load('ag_news_subset', split=split)
+
+  def _preprocess(d):
+    """Applies tokenization."""
+    tokens = tokenize(d['description']).flat_values,  # Note: we ignore 'title'
+    return {
+        'inputs': tokens,
+        'label': d['label'],
+        'index': tf.size(tokens),
+    }
+
+  # Shapes for the padded batch.
+  padded_shapes = {
+      'inputs': (sequence_length,),
+      'labels': (),
+      'index': (),
+  }
+
+  # Apply dataset pipeline.
+  dset = pipeline(dset, preprocess_fun=_preprocess)
+
+  # Filter out examples longer than sequence length.
+  dset = dset.filter(lambda d: d['index'] <= sequence_length)
+
+  # Pad remaining examples to the sequence length.
+  dset = dset.padded_batch(batch_size, padded_shapes)
+
+  return dset
+
+
 def goemotions(split, vocab_file, sequence_length=50, batch_size=64):
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
