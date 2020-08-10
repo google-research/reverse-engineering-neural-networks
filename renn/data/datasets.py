@@ -36,7 +36,7 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64):
 
   def _preprocess(d):
     """Applies tokenization."""
-    tokens = tokenize(d['description']).flat_values,  # Note: we ignore 'title'
+    tokens = tokenize(d['description']).flat_values  # Note: we ignore 'title'
     return {
         'inputs': tokens,
         'labels': d['label'],
