@@ -29,7 +29,7 @@ def tokenize_fun(tokenizer):
   return utils.compose(tokenizer.tokenize, wsp.tokenize, text.case_fold_utf8)
 
 
-def ag_news(split, vocab_file, sequence_length=100, batch_size=64):
+def ag_news(split, vocab_file, sequence_length=100, batch_size=64, num_classes=4):
   """Loads the ag news dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('ag_news_subset', split=split)
@@ -55,6 +55,9 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64):
 
   # Filter out examples longer than sequence length.
   dset = dset.filter(lambda d: d['index'] <= sequence_length)
+
+  # Filter out examples with label outside of the specified range.
+  dset = dset.filter(lambda d: d['labels'] < num_classes)
 
   # Pad remaining examples to the sequence length.
   dset = dset.padded_batch(batch_size, padded_shapes)
