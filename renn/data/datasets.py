@@ -29,7 +29,7 @@ def tokenize_fun(tokenizer):
   return utils.compose(tokenizer.tokenize, wsp.tokenize, text.case_fold_utf8)
 
 
-def ag_news(split, vocab_file, sequence_length=100, batch_size=64, num_classes=4):
+def ag_news(split, vocab_file, sequence_length=100, batch_size=64, transform=utils.identity):
   """Loads the ag news dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('ag_news_subset', split=split)
@@ -37,11 +37,12 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64, num_classes=4
   def _preprocess(d):
     """Applies tokenization."""
     tokens = tokenize(d['description']).flat_values  # Note: we ignore 'title'
-    return {
-        'inputs': tokens,
-        'labels': d['label'],
-        'index': tf.size(tokens),
-    }
+    preprocessed =  {
+                    'inputs': tokens,
+                    'labels': d['label'],
+                    'index': tf.size(tokens),
+                    }
+    return transform(preprocessed)
 
   # Shapes for the padded batch.
   padded_shapes = {
@@ -56,16 +57,13 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64, num_classes=4
   # Filter out examples longer than sequence length.
   dset = dset.filter(lambda d: d['index'] <= sequence_length)
 
-  # Filter out examples with label outside of the specified range.
-  dset = dset.filter(lambda d: d['labels'] < num_classes)
-
   # Pad remaining examples to the sequence length.
   dset = dset.padded_batch(batch_size, padded_shapes)
 
   return dset
 
 
-def goemotions(split, vocab_file, sequence_length=50, batch_size=64):
+def goemotions(split, vocab_file, sequence_length=50, batch_size=64, transform=utils.identity):
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('goemotions', split=split)
@@ -76,13 +74,14 @@ def goemotions(split, vocab_file, sequence_length=50, batch_size=64):
     tokens = tokenize(d['comment_text']).flat_values
     index = tf.size(tokens)
     labels = tf.convert_to_tensor([d[e] for e in emotions], dtype=tf.int64)
-    return {
-        'inputs': tokens,
-        'labels': labels,
-        'index': index,
-    }
+    preprocessed = {
+                   'inputs': tokens,
+                   'labels': labels,
+                   'index': index,
+                   }
+    return transform(preprocessed)
 
-  # Shapes for the padded batch.
+                # Shapes for the padded batch.
   padded_shapes = {
       'inputs': (sequence_length,),
       'labels': (len(emotions),),
@@ -101,7 +100,7 @@ def goemotions(split, vocab_file, sequence_length=50, batch_size=64):
   return dset
 
 
-def imdb(split, vocab_file, sequence_length=1000, batch_size=64):
+def imdb(split, vocab_file, sequence_length=1000, batch_size=64, transform=utils.identity):
   """Loads the imdb reviews dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('imdb_reviews', split=split)
@@ -109,11 +108,12 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64):
   def _preprocess(d):
     """Applies tokenization."""
     tokens = tokenize(d['text']).flat_values
-    return {
-        'inputs': tokens,
-        'labels': d['label'],
-        'index': tf.size(tokens),
-    }
+    preprocessed = {
+                   'inputs': tokens,
+                   'labels': d['label'],
+                   'index': tf.size(tokens),
+                    }
+    return transform(preprocessed)
 
   # Shapes for the padded batch.
   padded_shapes = {
