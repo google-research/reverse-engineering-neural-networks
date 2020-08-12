@@ -13,35 +13,49 @@ parser.add_argument('--savedir', type=str, default='/tmp')
 parser.add_argument('--vocab_size', type=int, default=2 ** 15)
 
 
-def imdb_vocab(filename, vocab_size):
-  dset = tfds.load('imdb_reviews', split='unsupervised')
+DATASETS = {
+    # dataset name, split, and dictionary key that contains text
+    'ag_news': ('ag_news_subset', 'train', 'description'),
+    'goemotions': ('goemotions', 'train', 'comment_text'),
+    'imdb': ('imdb_reviews', 'unsupervised', 'text'),
+}
 
-  # Build generator that iterates over the corpus.
-  corpus_generator = tfds.as_numpy(dset.map(lambda d: d['text']))
 
-  # Build vocabulary.
-  vocab = renn.data.build_vocab(corpus_generator,
-                                vocab_size,
-                                split_fun=lambda d: d.decode().lower().split())
-
-  # Save to file.
+def save_vocab(filename, vocab):
   with open(filename, 'w') as f:
     for v in vocab:
       f.write(v + '\n')
 
 
+def build_vocab(name, split, key, vocab_size):
+  dset = tfds.load(name, split=split)
+
+  # Extract text.
+  dset = tfds.as_numpy(dset.map(lambda d: d[key]))
+
+  # Build vocabulary.
+  return renn.data.build_vocab(iter(dset),
+                               vocab_size,
+                               split_fun=lambda d: d.decode().lower().split())
+
+
 def main():
   args = parser.parse_args()
 
-  # Where to save.
-  filename = os.path.join(args.savedir, args.dataset + '.vocab')
-  print(f'Saving vocab to: {filename}')
-
-  if args.dataset == 'imdb':
-    imdb_vocab(filename, args.vocab_size)
+  if args.dataset in DATASETS:
+    dset, split, key = DATASETS[args.dataset]
 
   else:
     raise ValueError(f'Invalid dataset {args.dataset}')
+
+  # Build vocab.
+  print(f'Building vocab for {args.dataset}')
+  vocab = build_vocab(dset, split, key, args.vocab_size)
+
+  # Save to file.
+  filename = os.path.join(args.savedir, args.dataset + '.vocab')
+  print(f'Saving vocab to: {filename}')
+  save_vocab(filename, vocab)
 
 
 if __name__ == '__main__':

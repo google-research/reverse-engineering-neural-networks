@@ -3,7 +3,7 @@ jax
 jaxlib
 msgpack
 tqdm
-tensorflow_datasets
-tensorflow_text
+tfds-nightly
+tensorflow-text
 tensorflow
 toolz
