@@ -155,9 +155,10 @@ def snli(split, vocab_file, sequence_length=1000, batch_size=64,
 
   def _preprocess(d):
     """Applies tokenization."""
-    hypothesis = tokenize(d['hypothesis'])
-    premise = tokenize(d['premise'])
-    tokens = hypothesis + tokenize(SEP) + premise
+    hypothesis = tokenize(d['hypothesis']).flat_values
+    premise = tokenize(d['premise']).flat_values
+    sep = tokenize(SEP).flat_values
+    tokens = tf.concat([hypothesis, sep, premise], axis=0)
     return transform({
       'inputs': tokens,
       'labels': d['label'],
