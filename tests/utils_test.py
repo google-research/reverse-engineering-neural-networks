@@ -32,6 +32,16 @@ def test_snd():
   assert utils.snd([0, 1, 2, 3]) == 1
 
 
+def test_compose():
+  """Tests function composition."""
+  data = np.arange(6).reshape(2, 3)
+  assert utils.compose(utils.fst, utils.fst)(data) == 0
+  assert utils.compose(utils.snd, utils.fst)(data) == 1
+  assert utils.compose(utils.fst, utils.snd)(data) == 3
+  assert utils.compose(utils.snd, utils.snd)(data) == 4
+  assert utils.compose(str, np.abs, lambda x: x ** 3)(-2) == '8'
+
+
 def test_empty():
   """Tests fst and snd functions on an empty array."""
 
