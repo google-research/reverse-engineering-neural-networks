@@ -2,6 +2,7 @@ numpy
 jax
 jaxlib
 msgpack
+sklearn
 tqdm
 tfds-nightly
 tensorflow-text
