@@ -30,7 +30,7 @@ def tokenize_fun(tokenizer):
 
 
 def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
-            transform_fn=utils.identity, filter_fn=None)
+            transform_fn=utils.identity, filter_fn=None):
   """Loads the ag news dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('ag_news_subset', split=split)
