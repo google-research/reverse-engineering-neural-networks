@@ -12,10 +12,10 @@ import tensorflow as tf
 __all__ = ['build_vocab', 'load_tokenizer']
 
 # Special tokens
-_JOINER = '##'
-_UNK = '<unk>'
-_CLS = '<cls>'
-_SEP = '<sep>'
+JOINER = '##'
+UNK = '<unk>'
+CLS = '<cls>'
+SEP = '<sep>'
 
 
 def build_vocab(corpus_generator, vocab_size, split_fun=str.split):
@@ -28,7 +28,7 @@ def build_vocab(corpus_generator, vocab_size, split_fun=str.split):
   word_counts = Counter(words)
 
   # Specify parameters.
-  reserved_tokens = (_UNK, _CLS, _SEP)
+  reserved_tokens = (UNK, CLS, SEP)
   params = vocab_learner.Params(upper_thresh=10000000,
                                 lower_thresh=10,
                                 num_iterations=4,
@@ -38,7 +38,7 @@ def build_vocab(corpus_generator, vocab_size, split_fun=str.split):
                                 vocab_size=vocab_size,
                                 slack_ratio=0.05,
                                 include_joiner_token=True,
-                                joiner=_JOINER,
+                                joiner=JOINER,
                                 reserved_tokens=reserved_tokens)
 
   # Build the vocabulary.
@@ -60,10 +60,10 @@ def load_tokenizer(vocab_file, default_value=-1):
 
   # Build tokenizer.
   tokenizer = text.WordpieceTokenizer(static_table,
-                                      suffix_indicator=_JOINER,
+                                      suffix_indicator=JOINER,
                                       max_bytes_per_word=100,
                                       max_chars_per_token=None,
                                       token_out_type=tf.int64,
-                                      unknown_token=_UNK)
+                                      unknown_token=UNK)
 
   return tokenizer

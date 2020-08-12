@@ -18,6 +18,7 @@ DATASETS = {
     'ag_news': ('ag_news_subset', 'train', 'description'),
     'goemotions': ('goemotions', 'train', 'comment_text'),
     'imdb': ('imdb_reviews', 'unsupervised', 'text'),
+    'snli': ('snli', 'train', 'premise'),
 }
 
 

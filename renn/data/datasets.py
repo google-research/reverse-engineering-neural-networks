@@ -5,10 +5,10 @@ import tensorflow_text as text
 import tensorflow as tf
 
 from renn import utils
-from renn.data.tokenizers import load_tokenizer
+from renn.data.tokenizers import load_tokenizer, SEP
 
 
-__all__ = ['ag_news', 'goemotions', 'imdb', 'tokenize_fun']
+__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun']
 
 
 def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024):
@@ -29,11 +29,42 @@ def tokenize_fun(tokenizer):
   return utils.compose(tokenizer.tokenize, wsp.tokenize, text.case_fold_utf8)
 
 
+def padded_batch(dset, batch_size, sequence_length, label_shape=()):
+  """Pads examples to a fixed length, and collects them into batches."""
+
+  # We assume the dataset contains inputs, labels, and an index.
+  padded_shapes = {
+      'inputs': (sequence_length,),
+      'labels': label_shape,
+      'index': (),
+  }
+
+  # Filter out examples longer than sequence length.
+  dset = dset.filter(lambda d: d['index'] <= sequence_length)
+
+  # Pad remaining examples to the sequence length.
+  dset = dset.padded_batch(batch_size, padded_shapes)
+
+  return dset
+
+
+
+def load_text_classification(name, split, preprocess_fun, data_dir=None):
+  """Helper that loads a text classification dataset."""
+
+  # Load raw dataset.
+  dset = tfds.load(name, split=split, data_dir=data_dir)
+
+  # Apply common dataset pipeline.
+  dset = pipeline(dset, preprocess_fun=preprocess_fun)
+
+  return dset
+
+
 def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
             transform_fn=utils.identity, filter_fn=None, data_dir=None):
   """Loads the ag news dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
-  dset = tfds.load('ag_news_subset', split=split, data_dir=data_dir)
 
   def _preprocess(d):
     """Applies tokenization."""
@@ -45,34 +76,23 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
                     }
     return transform_fn(preprocessed)
 
-  # Shapes for the padded batch.
-  padded_shapes = {
-      'inputs': (sequence_length,),
-      'labels': (),
-      'index': (),
-  }
-
-  # Apply dataset pipeline.
-  dset = pipeline(dset, preprocess_fun=_preprocess)
-
-  # Filter out examples longer than sequence length.
-  dset = dset.filter(lambda d: d['index'] <= sequence_length)
+  # Load dataset.
+  dset = load_text_classification('ag_news_subset', split, _preprocess, data_dir=data_dir)
 
   # Filter out examples according to the provided filter_fn
   if filter_fn is not None:
     dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
-  dset = dset.padded_batch(batch_size, padded_shapes)
+  dset = padded_batch(dset, batch_size, sequence_length)
 
   return dset
 
 
 def goemotions(split, vocab_file, sequence_length=50, batch_size=64,
-               transform=utils.identity, filter_fn = None, data_dir=None):
+               transform=utils.identity, filter_fn=None, data_dir=None):
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
-  dset = tfds.load('goemotions', split=split, data_dir=data_dir)
 
   emotions = ('admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'neutral', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise')
 
@@ -87,25 +107,15 @@ def goemotions(split, vocab_file, sequence_length=50, batch_size=64,
                    }
     return transform(preprocessed)
 
-                # Shapes for the padded batch.
-  padded_shapes = {
-      'inputs': (sequence_length,),
-      'labels': (len(emotions),),
-      'index': (),
-  }
-
-  # Apply dataset pipeline.
-  dset = pipeline(dset, preprocess_fun=_preprocess)
-
-  # Filter out examples longer than the sequence length.
-  dset = dset.filter(lambda d: d['index'] <= sequence_length)
+  # Load dataset.
+  dset = load_text_classification('goemotions', split, _preprocess, data_dir=data_dir)
 
   # Filter out examples according to the provided filter_fn
   if filter_fn is not None:
     dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
-  dset = dset.padded_batch(batch_size, padded_shapes)
+  dset = padded_batch(dset, batch_size, sequence_length, label_shape=(len(emotions),))
 
   return dset
 
@@ -114,7 +124,6 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
          transform=utils.identity, filter_fn=None, data_dir=None):
   """Loads the imdb reviews dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
-  dset = tfds.load('imdb_reviews', split=split, data_dir=data_dir)
 
   def _preprocess(d):
     """Applies tokenization."""
@@ -126,24 +135,43 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
                     }
     return transform(preprocessed)
 
-  # Shapes for the padded batch.
-  padded_shapes = {
-      'inputs': (sequence_length,),
-      'labels': (),
-      'index': (),
-  }
-
-  # Apply dataset pipeline.
-  dset = pipeline(dset, preprocess_fun=_preprocess)
-
-  # Filter out examples longer than the sequence length.
-  dset = dset.filter(lambda d: d['index'] <= sequence_length)
+  # Load dataset.
+  dset = load_text_classification('imdb_reviews', split, _preprocess, data_dir=data_dir)
 
   # Filter out examples according to the provided filter_fn
   if filter_fn is not None:
     dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
-  dset = dset.padded_batch(batch_size, padded_shapes)
+  dset = padded_batch(dset, batch_size, sequence_length)
+
+  return dset
+
+
+def snli(split, vocab_file, sequence_length=1000, batch_size=64,
+         transform=utils.identity, filter_fn=None, data_dir=None):
+  """Loads the SNLI dataset."""
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
+
+  def _preprocess(d):
+    """Applies tokenization."""
+    hypothesis = tokenize(d['hypothesis'])
+    premise = tokenize(d['premise'])
+    tokens = hypothesis + tokenize(SEP) + premise
+    return transform({
+      'inputs': tokens,
+      'labels': d['label'],
+      'index': tf.size(tokens),
+    })
+
+  # Load dataset.
+  dset = load_text_classification('snli', split, _preprocess, data_dir=data_dir)
+
+  # Apply custom filter.
+  if filter_fn is not None:
+    dset = dset.filter(filter_fn)
+
+  # Pad remaining examples to the sequence length.
+  dset = padded_batch(dset, batch_size, sequence_length)
 
   return dset
