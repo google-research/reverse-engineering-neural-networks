@@ -79,7 +79,7 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
   # Load dataset.
   dset = load_text_classification('ag_news_subset', split, _preprocess, data_dir=data_dir)
 
-  # Filter out examples according to the provided filter_fn
+  # Apply custom filter.
   if filter_fn is not None:
     dset = dset.filter(filter_fn)
 
@@ -110,7 +110,7 @@ def goemotions(split, vocab_file, sequence_length=50, batch_size=64,
   # Load dataset.
   dset = load_text_classification('goemotions', split, _preprocess, data_dir=data_dir)
 
-  # Filter out examples according to the provided filter_fn
+  # Apply custom filter.
   if filter_fn is not None:
     dset = dset.filter(filter_fn)
 
@@ -138,7 +138,7 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
   # Load dataset.
   dset = load_text_classification('imdb_reviews', split, _preprocess, data_dir=data_dir)
 
-  # Filter out examples according to the provided filter_fn
+  # Apply custom filter.
   if filter_fn is not None:
     dset = dset.filter(filter_fn)
 
