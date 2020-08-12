@@ -14,24 +14,24 @@
 
 """Load tasks from the library."""
 
+import jax
+import jax.numpy as jnp
+from jax.experimental import stax
+
+from renn import utils
+from sklearn.datasets import make_moons
+
 from .task_lib import classification
 from .task_lib import quadratic
 from .task_lib import regression
 
+
 __all__ = [
-    'fc',
-    'cnn',
-    'linreg',
-    'logreg',
-    'clf',
-    'quad'
+    'quad',
+    'two_moons',
 ]
 
-# Pre-defined neural network models.
-fc = classification.fully_connected
-cnn = classification.conv2d
-
-# Each task below is a function that takes problem hyperparameters as
+# Each task below is a function that takes problem parameters as
 # arguments and returns a `problem_fun` function. This function takes a
 # single argument, a PRNGKey, and returns a (x_init, loss_fun, data) tuple.
 # x_init is a pytree initial problem parameters. loss_fun is a function
@@ -39,7 +39,48 @@ cnn = classification.conv2d
 # data is an iterable pytree. All leaves of the tree must have the same first
 # dimension, which is the number of steps to optimize for. These slices
 # of data will be passed to the loss_fun during optimization.
-linreg = regression.linear
-logreg = regression.logistic
-clf = classification.classifier
 quad = quadratic.loguniform
+
+
+def two_moons(num_samples=1024, l2_pen=5e-3, seed=0):
+  num_classes = 2
+  model = stax.serial(
+      stax.Dense(64),
+      stax.tanh,
+      stax.Dense(64),
+      stax.tanh,
+      stax.Dense(64),
+      stax.tanh,
+      stax.Dense(1))
+
+  x, y = make_moons(n_samples=num_samples,
+                    shuffle=True,
+                    noise=0.1,
+                    random_state=seed)
+  features = jnp.array(x)
+  targets = jnp.array(y)
+
+  return logistic_regression(model, features, targets, l2_pen=l2_pen)
+
+
+def logistic_regression(model, features, targets, l2_pen=0.):
+  """Helper function for logistic regression."""
+
+  m, n = features.shape
+
+  def problem_fun(prng_key):
+    keys = jax.random.split(prng_key)
+    input_shape = (-1, n)
+    init_fun, predict_fun = model
+    output_shape, x0 = init_fun(keys[0], input_shape)
+
+    def loss_fun(x, step):
+      del step
+      logits = jnp.squeeze(predict_fun(x, features))
+      data_loss = jnp.mean(jnp.log1p(jnp.exp(logits)) - targets * logits)
+      reg_loss = l2_pen * utils.norm(x)
+      return data_loss + reg_loss
+
+    return x0, loss_fun
+
+  return problem_fun
