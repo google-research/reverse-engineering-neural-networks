@@ -30,10 +30,10 @@ def tokenize_fun(tokenizer):
 
 
 def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
-            transform_fn=utils.identity, filter_fn=None):
+            transform_fn=utils.identity, filter_fn=None, data_dir=None):
   """Loads the ag news dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
-  dset = tfds.load('ag_news_subset', split=split)
+  dset = tfds.load('ag_news_subset', split=split, data_dir=data_dir)
 
   def _preprocess(d):
     """Applies tokenization."""
@@ -69,10 +69,10 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
 
 
 def goemotions(split, vocab_file, sequence_length=50, batch_size=64,
-               transform=utils.identity, filter_fn = None):
+               transform=utils.identity, filter_fn = None, data_dir=None):
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
-  dset = tfds.load('goemotions', split=split)
+  dset = tfds.load('goemotions', split=split, data_dir=data_dir)
 
   emotions = ('admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'neutral', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise')
 
@@ -111,10 +111,10 @@ def goemotions(split, vocab_file, sequence_length=50, batch_size=64,
 
 
 def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
-         transform=utils.identity, filter_fn=None):
+         transform=utils.identity, filter_fn=None, data_dir=None):
   """Loads the imdb reviews dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
-  dset = tfds.load('imdb_reviews', split=split)
+  dset = tfds.load('imdb_reviews', split=split, data_dir=data_dir)
 
   def _preprocess(d):
     """Applies tokenization."""
