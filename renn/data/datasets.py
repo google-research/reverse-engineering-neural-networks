@@ -148,7 +148,7 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
   return dset
 
 
-def snli(split, vocab_file, sequence_length=1000, batch_size=64,
+def snli(split, vocab_file, sequence_length=75, batch_size=64,
          transform=utils.identity, filter_fn=None, data_dir=None):
   """Loads the SNLI dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
