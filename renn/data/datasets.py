@@ -29,7 +29,8 @@ def tokenize_fun(tokenizer):
   return utils.compose(tokenizer.tokenize, wsp.tokenize, text.case_fold_utf8)
 
 
-def ag_news(split, vocab_file, sequence_length=100, batch_size=64, transform=utils.identity):
+def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
+            transform_fn=utils.identity, filter_fn=None)
   """Loads the ag news dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('ag_news_subset', split=split)
@@ -42,7 +43,7 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64, transform=uti
                     'labels': d['label'],
                     'index': tf.size(tokens),
                     }
-    return transform(preprocessed)
+    return transform_fn(preprocessed)
 
   # Shapes for the padded batch.
   padded_shapes = {
@@ -57,13 +58,18 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64, transform=uti
   # Filter out examples longer than sequence length.
   dset = dset.filter(lambda d: d['index'] <= sequence_length)
 
+  # Filter out examples according to the provided filter_fn
+  if filter_fn is not None:
+    dset = dset.filter(filter_fn)
+
   # Pad remaining examples to the sequence length.
   dset = dset.padded_batch(batch_size, padded_shapes)
 
   return dset
 
 
-def goemotions(split, vocab_file, sequence_length=50, batch_size=64, transform=utils.identity):
+def goemotions(split, vocab_file, sequence_length=50, batch_size=64,
+               transform=utils.identity, filter_fn = None):
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('goemotions', split=split)
@@ -94,13 +100,18 @@ def goemotions(split, vocab_file, sequence_length=50, batch_size=64, transform=u
   # Filter out examples longer than the sequence length.
   dset = dset.filter(lambda d: d['index'] <= sequence_length)
 
+  # Filter out examples according to the provided filter_fn
+  if filter_fn is not None:
+    dset = dset.filter(filter_fn)
+
   # Pad remaining examples to the sequence length.
   dset = dset.padded_batch(batch_size, padded_shapes)
 
   return dset
 
 
-def imdb(split, vocab_file, sequence_length=1000, batch_size=64, transform=utils.identity):
+def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
+         transform=utils.identity, filter_fn=None):
   """Loads the imdb reviews dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
   dset = tfds.load('imdb_reviews', split=split)
@@ -127,6 +138,10 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64, transform=utils
 
   # Filter out examples longer than the sequence length.
   dset = dset.filter(lambda d: d['index'] <= sequence_length)
+
+  # Filter out examples according to the provided filter_fn
+  if filter_fn is not None:
+    dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
   dset = dset.padded_batch(batch_size, padded_shapes)
