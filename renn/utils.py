@@ -88,8 +88,7 @@ def compose(*funcs):
   return wrapper
 
 
-def optimize(loss_fun, x0, optimizer, num_steps,
-             iterator=tqdm.trange, stop_tol=-np.inf):
+def optimize(loss_fun, x0, optimizer, steps, stop_tol=-np.inf):
   """Run an optimizer on a given loss function.
 
   Args:
@@ -97,8 +96,7 @@ def optimize(loss_fun, x0, optimizer, num_steps,
     x0: Initial parameters.
     optimizer: An tuple of optimizer functions (init_opt, update_opt,
       get_params) from a jax.experimental.optimizers instance.
-    num_steps: Number of steps to run the optimizer.
-    iterator: Function used to iterate over steps (Default: tqdm.trange).
+    steps: Iterator over steps.
     stop_tol: Stop if the loss is below this value (Default: -np.inf).
 
   Returns:
@@ -120,19 +118,18 @@ def optimize(loss_fun, x0, optimizer, num_steps,
     return loss, update_opt(k, grads, state)
 
   # Store loss history.
-  loss_hist = np.empty(num_steps)
-  for k in iterator(num_steps):
+  loss_hist = []
+  for k in steps:
     f, opt_state = step(k, opt_state)
-    loss_hist[k] = f
+    loss_hist.append(f)
 
     if f <= stop_tol:
-      loss_hist = loss_hist[:k]
       break
 
   # Extract final parameters.
   final_params = get_params(opt_state)
 
-  return loss_hist, final_params
+  return np.array(loss_hist), final_params
 
 
 def one_hot(labels, num_classes, dtype=jnp.float32):

@@ -61,7 +61,7 @@ def build_fixed_point_loss(rnn_cell, cell_params):
 
 
 def find_fixed_points(fp_loss_fun, initial_states, x_star, optimizer,
-                      tolerance, num_steps=10000):
+                      tolerance, steps=range(1000)):
   """Run fixed point optimization.
 
   Args:
@@ -70,7 +70,7 @@ def find_fixed_points(fp_loss_fun, initial_states, x_star, optimizer,
     x_star: Input at which to compute fixed points.
     optimizer: A jax.experimental.optimizers tuple.
     tolerance: Stopping tolerance threshold.
-    num_steps: Number of steps to run (Default: 10000).
+    steps: Iterator over steps.
 
   Returns:
     fixed_points: Array of fixed points for each tolerance.
@@ -81,14 +81,13 @@ def find_fixed_points(fp_loss_fun, initial_states, x_star, optimizer,
       lambda h: jnp.mean(fp_loss_fun(h, x_star)),
       initial_states,
       optimizer,
-      num_steps,
+      steps,
       stop_tol=tolerance)
 
   fixed_points = jax.device_get(fps)
-  loss_history = jax.device_get(loss_hist)
   squared_speeds = jax.device_get(fp_loss_fun(fps, x_star))
 
-  return fixed_points, loss_history, squared_speeds
+  return fixed_points, loss_hist, squared_speeds
 
 
 def exclude_outliers(points, threshold=np.inf, verbose=False):
