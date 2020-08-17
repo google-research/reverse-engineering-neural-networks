@@ -198,7 +198,7 @@ def evaluate(opt, problem_fun, num_steps, eval_key, num_repeats=64):
   """
   @jax.jit
   def _run(k):
-    return utils.snd(unroll_scan(*problem_fun(k), opt, num_steps))
+    return unroll_scan(*problem_fun(k), opt, num_steps, utils.identity)[1]
 
   keys = jax.random.split(eval_key, num=num_repeats)
   return jax.device_get(jax.vmap(_run)(keys))
