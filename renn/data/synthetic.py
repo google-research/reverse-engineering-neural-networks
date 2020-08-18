@@ -39,8 +39,6 @@ def build_vocab(valences=None, num_classes=3):
   """ Builds the vocabulary
   Vocabulary for this dataset consists of tuples, e.g., ('very', 3),
     indicating in this case a token which provides strong evidence of class 3.
-  The degree of evidence for each basic word is stored in the WORD_VALENCES
-    dictionary
   """
 
   if valences is None:
