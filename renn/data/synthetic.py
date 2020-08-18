@@ -1,3 +1,17 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Synthetic Datasets."""
 
 import numpy as np
@@ -7,19 +21,42 @@ from renn import utils
 __all__ = ['Unordered']
 
 def constant_sampler(value):
-  # returns a sampling function which always returns the value 'value'
+  """Returns a sampling function which always returns the value 'value'"""
 
   def sample(num_samples):
     return np.full((num_samples, ), value)
   return sample
 
 def uniform_sampler(min_val, max_val):
-  # returns a sampling function which samples uniformly between min_val and
-  # max_val, inclusive
+  """returns a sampling function which samples uniformly between min_val and
+  max_val, inclusive"""
 
   def sample(num_samples):
     return np.random.randint(min_val, max_val+1, size=(num_samples,))
   return sample
+
+def build_vocab(valences=None, num_classes=3):
+  """ Builds the vocabulary
+  Vocabulary for this dataset consists of tuples, e.g., ('very', 3),
+    indicating in this case a token which provides strong evidence of class 3.
+  The degree of evidence for each basic word is stored in the WORD_VALENCES
+    dictionary
+  """
+
+  if valences is None:
+    valences = {'very': 2, 'some': 1, 'neutral': 0, 'not': -1}
+
+  words = product(valences, range(num_classes))
+
+  def _score(word):
+    """Converts a word like ('very', 1) to a
+    vector-valued score, in this case (0,2,0,...)"""
+    score = np.zeros(num_classes)
+    score[word[1]] = valences[word[0]]
+    return valence
+
+  vocab = {i: _score(word) for i, word in enumerate(words)}
+  return vocab
 
 class Unordered:
   """Synthetic dataset representing un-ordered classes, to mimic e.g.
@@ -40,7 +77,7 @@ class Unordered:
     else:
       raise ValueError(f'length_sampler must be one of {SAMPLERS.keys()}')
 
-    self.build_vocab()
+    vocab = build_vocab(num_classes=num_classes)
 
   def __iter__(self):
     return self
@@ -72,25 +109,3 @@ class Unordered:
     evidence in the sentence, for each class"""
     return sum([self.vocab[word] for word in sentence[:length]])
 
-  def build_vocab(self):
-    """ Builds the vocabulary
-    Vocabulary for this dataset consists of tuples, e.g., ('very', 3),
-      indicating in this case a token which provides strong evidence of class 3.
-    The degree of evidence for each basic word is stored in the WORD_VALENCES
-      dictionary
-    """
-    WORD_VALENCES = {'very': 2,
-                   'some': 1,
-                   'neutral': 0,
-                   'not': -1}
-
-    words = product(WORD_VALENCES, range(self.num_classes))
-
-    def _valence(word):
-      """Converts a word like ('very', 1) to a
-      vector-valued valence, in this case (0,2,0,...)"""
-      valence = np.zeros(self.num_classes)
-      valence[word[1]] = WORD_VALENCES[word[0]]
-      return valence
-
-    self.vocab = {i: _valence(word) for i, word in enumerate(words)}
