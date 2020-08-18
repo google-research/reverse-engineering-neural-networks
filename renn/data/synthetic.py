@@ -6,16 +6,31 @@ from renn import utils
 
 __all__ = ['Unordered']
 
+def constant_sampler(value):
+  # returns a sampling function which always returns the value 'value'
+
+  def sample(num_samples):
+    return np.fill((num_samples, ), value)
+  return sample
+
+def uniform_sampler(min_val, max_val):
+  # returns a sampling function which samples uniformly between min_val and
+  # max_val, inclusive
+
+  def sample(num_samples):
+    return np.random.randint(min_val, max_val+1, size=(num_samples,))
+  return sample
+
 class Unordered:
   """Synthetic dataset representing un-ordered classes, to mimic e.g.
   text-classification datasets like AG News (unlike, say, star-prediction or
   sentiment analysis, which features ordered classes"""
 
-  SAMPLERS = {'Constant': constant_sampler,
-              'Uniform': uniform_sampler}
-
   def __init__(self, num_classes=3, batch_size=64, length_sampler='Constant',
                sampler_params={'value': 40}):
+
+    SAMPLERS = {'Constant': constant_sampler,
+                'Uniform': uniform_sampler}
 
     self.num_classes = num_classes
     self.batch_size = batch_size
@@ -77,18 +92,3 @@ class Unordered:
       return valence
 
     self.vocab = {i: _valence(words) for i, word in enumerate(words)}
-
-def constant_sampler(value):
-  # returns a sampling function which always returns the value 'value'
-
-  def sample(num_samples):
-    return np.fill((num_samples, ), length)
-  return sample
-
-def uniform_sampler(min_val, max_val):
-  # returns a sampling function which samples uniformly between min_val and
-  # max_val, inclusive
-
-  def sample(num_samples):
-    return np.random.randint(min_val, max_val+1, size=(num_samples,))
-  return sample
