@@ -10,7 +10,7 @@ def constant_sampler(value):
   # returns a sampling function which always returns the value 'value'
 
   def sample(num_samples):
-    return np.fill((num_samples, ), value)
+    return np.full((num_samples, ), value)
   return sample
 
 def uniform_sampler(min_val, max_val):
@@ -39,6 +39,8 @@ class Unordered:
       self.sampler = SAMPLERS[length_sampler](**sampler_params)
     else:
       raise ValueError(f'length_sampler must be one of {SAMPLERS.keys()}')
+
+    self.build_vocab()
 
   def __iter__(self):
     return self
@@ -91,4 +93,4 @@ class Unordered:
       valence[word[1]] = WORD_VALENCES[word[0]]
       return valence
 
-    self.vocab = {i: _valence(words) for i, word in enumerate(words)}
+    self.vocab = {i: _valence(word) for i, word in enumerate(words)}
