@@ -15,7 +15,6 @@
 """RENN core."""
 # pylint: disable=wildcard-import
 from . import data
-from . import synthetic
 from .rnn.cells import *
 from .rnn.fixed_points import *
 from .rnn.network import *
