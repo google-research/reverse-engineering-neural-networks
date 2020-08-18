@@ -14,6 +14,7 @@
 """Tests for synthetic datasets."""
 
 from renn.data import synthetic
+import numpy as np
 
 def test_constant_sampler():
   """Tests that the constant sampler returns
@@ -46,3 +47,22 @@ def test_uniform_sampler():
       for sample in samples:
         assert sample <= interval[1] and sample >= interval[0]
 
+def test_scoring():
+  """Tests that the scoring function works correctly,
+  specifically that it uses the length properly"""
+
+  test_dataset = synthetic.Unordered(num_classes=3)
+
+  SYMBOL = 0
+  SYMBOL_SCORE = test_dataset.vocab[SYMBOL]
+
+  MAX_LENGTH = 100
+  MIN_LENGTH = 10
+
+  for symbol, symbol_score in test_dataset.vocab.items():
+
+    test_sentence = [symbol] * MAX_LENGTH
+
+    for length in range(MIN_LENGTH, MAX_LENGTH):
+      calculated_score = test_dataset.score(test_sentence, length)
+      assert np.array_equal(calculated_score, symbol_score * length)
