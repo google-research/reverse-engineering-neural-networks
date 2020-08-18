@@ -53,7 +53,7 @@ def build_vocab(valences=None, num_classes=3):
     vector-valued score, in this case (0,2,0,...)"""
     score = np.zeros(num_classes)
     score[word[1]] = valences[word[0]]
-    return valence
+    return score
 
   vocab = {i: _score(word) for i, word in enumerate(words)}
   return vocab
@@ -77,7 +77,7 @@ class Unordered:
     else:
       raise ValueError(f'length_sampler must be one of {SAMPLERS.keys()}')
 
-    vocab = build_vocab(num_classes=num_classes)
+    self.vocab = build_vocab(num_classes=num_classes)
 
   def __iter__(self):
     return self
