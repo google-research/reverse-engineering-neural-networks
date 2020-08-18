@@ -16,6 +16,9 @@
 from renn.data import synthetic
 
 def test_constant_sampler():
+  """Tests that the constant sampler returns
+  an array of the specified length, with the single
+  specified value"""
   constant_values = [4,23,45,1,94]
   sample_nums = [10,15,16,18]
 
@@ -27,6 +30,9 @@ def test_constant_sampler():
       assert s(num)[0] == val
 
 def test_uniform_sampler():
+  """Tests that the uniform sampler returns
+  samples of the proper length, whose values lie in the
+  specified interval"""
   intervals = [(10,20), (15,30)]
   sample_nums = [10,15,16,18]
 
