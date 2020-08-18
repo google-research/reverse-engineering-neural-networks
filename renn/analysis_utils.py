@@ -60,10 +60,6 @@ def pseudogrid(coordinates, dimension):
   points = np.stack(points).reshape(max_specified_dim+1, -1).T
 
   padding = np.zeros((points.shape[0],
-                      dimension - max_specified_dimension - 1))
+                      dimension - max_specified_dim - 1))
 
-  return np.concatenate((points, padding), axis=1
-
-  points = np.meshgrid(*[all_coordinates[i] for i in range(dimension)])
-  return np.dstack(points).reshape(-1, dimension)
-
+  return np.concatenate((points, padding), axis=1)
