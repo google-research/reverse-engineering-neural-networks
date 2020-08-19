@@ -103,7 +103,7 @@ class Unordered:
     batch = {
         'inputs':
             np.random.randint(len(self.vocab),
-                              size=(self.batch_size, max_length + 1)),
+                              size=(self.batch_size, max_length)),
         'index':
             lengths
     }

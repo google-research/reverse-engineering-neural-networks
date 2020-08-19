@@ -10,18 +10,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for synthetic datasets."""
 
 from renn.data import synthetic
 import numpy as np
 
+
 def test_constant_sampler():
   """Tests that the constant sampler returns
   an array of the specified length, with the single
   specified value"""
-  constant_values = [4,23,45,1,94]
-  sample_nums = [10,15,16,18]
+  constant_values = [4, 23, 45, 1, 94]
+  sample_nums = [10, 15, 16, 18]
 
   for val in constant_values:
     s = synthetic.constant_sampler(value=val)
@@ -30,22 +30,23 @@ def test_constant_sampler():
       assert len(set(s(num))) == 1
       assert s(num)[0] == val
 
+
 def test_uniform_sampler():
   """Tests that the uniform sampler returns
   samples of the proper length, whose values lie in the
   specified interval"""
-  intervals = [(10,20), (15,30)]
-  sample_nums = [10,15,16,18]
+  intervals = [(10, 20), (15, 30)]
+  sample_nums = [10, 15, 16, 18]
 
   for interval in intervals:
-    s = synthetic.uniform_sampler(min_val=interval[0],
-                                  max_val=interval[1])
+    s = synthetic.uniform_sampler(min_val=interval[0], max_val=interval[1])
     for num in sample_nums:
       samples = s(num)
       assert len(samples) == num
 
       for sample in samples:
         assert sample <= interval[1] and sample >= interval[0]
+
 
 def test_scoring():
   """Tests that the scoring function works correctly,
@@ -66,3 +67,24 @@ def test_scoring():
     for length in range(MIN_LENGTH, MAX_LENGTH):
       calculated_score = test_dataset.score(test_sentence, length)
       assert np.array_equal(calculated_score, symbol_score * length)
+
+
+def test_batching():
+  """Tests that batch['inputs'] has the correct shape,
+  and batch['index'] matches the length of the sequence,
+  in the easy-to-check case of a uniform sampler."""
+
+  LENGTH = 30
+  BATCH_SIZE = 64
+  test_dataset = synthetic.Unordered(num_classes=3,
+                                     batch_size=BATCH_SIZE,
+                                     length_sampler='Constant',
+                                     sampler_params={'value': LENGTH})
+  test_batch = next(test_dataset)
+  assert np.array_equal(test_batch['inputs'].shape,
+                        np.array([BATCH_SIZE, LENGTH]))
+
+  # check that index is always LENGTH
+  assert len(test_batch['index']) == BATCH_SIZE
+  assert len(set(test_batch['index'])) == 1
+  assert test_batch['index'][0] == LENGTH
