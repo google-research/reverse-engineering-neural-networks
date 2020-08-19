@@ -15,7 +15,6 @@
 
 import jax
 import jax.numpy as jnp
-from jax.experimental import stax
 
 from renn import utils
 from sklearn.datasets import make_moons
@@ -40,11 +39,8 @@ __all__ = [
 quad = quadratic.loguniform
 
 
-def two_moons(num_samples=1024, l2_pen=5e-3, seed=0):
+def two_moons(model, num_samples=1024, l2_pen=5e-3, seed=0):
   num_classes = 2
-  model = stax.serial(stax.Dense(64), stax.tanh, stax.Dense(64), stax.tanh,
-                      stax.Dense(64), stax.tanh, stax.Dense(1))
-
   x, y = make_moons(n_samples=num_samples,
                     shuffle=True,
                     noise=0.1,
