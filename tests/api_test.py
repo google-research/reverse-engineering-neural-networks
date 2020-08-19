@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests meta-optimization."""
 
 import functools
@@ -29,13 +28,10 @@ from renn import utils
 import toolz
 
 
-@pytest.mark.parametrize(
-    "x,value,expected",
-    [
-      ([1., 2., 3.], 2.5, [1., 2., 2.5]),
-      ([-5., 0., 5.], 1.0, [-1., 0., 1.]),
-    ]
-)
+@pytest.mark.parametrize("x,value,expected", [
+    ([1., 2., 3.], 2.5, [1., 2., 2.5]),
+    ([-5., 0., 5.], 1.0, [-1., 0., 1.]),
+])
 def test_clip(x, value, expected):
   """Tests the clipping function."""
 
@@ -47,13 +43,10 @@ def test_clip(x, value, expected):
   assert np.allclose(x_clipped, expected)
 
 
-@pytest.mark.parametrize(
-    "optimizer_fun,decorator,num_steps",
-    [
-      (metaopt.models.momentum, utils.identity, 3),
-      (metaopt.models.momentum, jax.remat, 3),
-    ]
-)
+@pytest.mark.parametrize("optimizer_fun,decorator,num_steps", [
+    (metaopt.models.momentum, utils.identity, 3),
+    (metaopt.models.momentum, jax.remat, 3),
+])
 def test_momentum(optimizer_fun, decorator, num_steps):
   """Numerical test for the meta-gradient of a parameterized optimizer."""
 
@@ -64,7 +57,9 @@ def test_momentum(optimizer_fun, decorator, num_steps):
   theta_init, optimizer_fun = optimizer_fun(keys[0])
 
   # Build the meta-objective.
-  metaobj = metaopt.build_metaobj(problem_fun, optimizer_fun, num_steps,
+  metaobj = metaopt.build_metaobj(problem_fun,
+                                  optimizer_fun,
+                                  num_steps,
                                   decorator=decorator)
 
   # Bind the prng key.

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines regression tasks."""
 
 import jax
@@ -36,8 +35,8 @@ def linear(dim, num_datapoints, scale, l2_penalty=1e-3):
     # Quadratic loss function.
     def loss_fun(params, _):
       predictions = jnp.dot(features, params)
-      loss = jnp.mean((predictions - targets) ** 2)
-      return loss + l2_penalty * jnp.sum(params ** 2)
+      loss = jnp.mean((predictions - targets)**2)
+      return loss + l2_penalty * jnp.sum(params**2)
 
     return initial_params, loss_fun
 
@@ -65,7 +64,7 @@ def logistic(dim, num_datapoints, l2_penalty=1e-5):
       logits = jnp.dot(features, params['weights']) + params['bias']
 
       data_loss = sigmoid_xent(logits, targets)
-      reg_loss = l2_penalty * jnp.sum(params['weights'] ** 2)
+      reg_loss = l2_penalty * jnp.sum(params['weights']**2)
       return data_loss + reg_loss
 
     return initial_params, loss_fun
@@ -84,8 +83,11 @@ def logistic_acc(logits, labels):
   return jnp.mean(predictions == labels)
 
 
-def make_classification(prng_key, num_features, num_examples,
-                        num_classes=2, sep=2.):
+def make_classification(prng_key,
+                        num_features,
+                        num_examples,
+                        num_classes=2,
+                        sep=2.):
   """Generates random classification problems."""
 
   num_examples_per_class = num_examples // num_classes

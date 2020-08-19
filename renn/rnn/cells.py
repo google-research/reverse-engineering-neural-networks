@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Recurrent neural network (RNN) cells."""
 import dataclasses
 
@@ -19,9 +18,10 @@ import jax
 import jax.numpy as jnp
 from jax.tree_util import register_pytree_node
 
-__all__ = ['LinearRNN', 'RNNCell', 'StackedRNN', 'GRU', 'LSTM', 'VanillaRNN',
-           'UGRNN', 'embedding']
-
+__all__ = [
+    'LinearRNN', 'RNNCell', 'StackedRNN', 'GRU', 'LSTM', 'VanillaRNN', 'UGRNN',
+    'embedding'
+]
 
 # Aliases for standard initializers and nonlinearities.
 fan_in = jax.nn.initializers.variance_scaling(1., 'fan_in', 'normal')
@@ -31,9 +31,9 @@ zeros = jax.nn.initializers.zeros
 @dataclasses.dataclass
 class LinearRNN:
   """Dataclass for storing parameters of a Linear RNN."""
-  A: jnp.array    # Input weights.      pylint: disable=invalid-name
-  W: jnp.array    # Recurrent weights.  pylint: disable=invalid-name
-  b: jnp.array    # Bias.
+  A: jnp.array  # Input weights.      pylint: disable=invalid-name
+  W: jnp.array  # Recurrent weights.  pylint: disable=invalid-name
+  b: jnp.array  # Bias.
 
   def apply(self, x, h) -> jnp.array:
     """Linear RNN Update."""
@@ -45,8 +45,7 @@ class LinearRNN:
 
 # Register the LinearRNN dataclass as a pytree, so that we can directly
 # pass it to other jax functions (optimizers, flatten, etc.)
-register_pytree_node(LinearRNN,
-                     lambda node: (node.flatten(), None),
+register_pytree_node(LinearRNN, lambda node: (node.flatten(), None),
                      lambda _, children: LinearRNN(*children))
 
 
@@ -208,10 +207,15 @@ class VanillaRNN(RNNCell):
     linear_update = params['weights']
     return jnp.tanh(linear_update.apply(inputs, state))
 
+
 class UGRNN(RNNCell):
   """Update-gate RNN Cell."""
 
-  def __init__(self, num_units, gate_bias=0., w_init=fan_in, b_init=zeros,
+  def __init__(self,
+               num_units,
+               gate_bias=0.,
+               w_init=fan_in,
+               b_init=zeros,
                h_init=zeros):
     """Update-gate RNN (UGRNN) Cell.
 
@@ -250,8 +254,11 @@ class UGRNN(RNNCell):
 
     key, key_ic = jax.random.split(key, 2)
     initial_state = super().init_initial_state(key_ic)
-    params = {'initial_state': initial_state, 'update_gate': update_gate,
-              'cell_state': cell_state}
+    params = {
+        'initial_state': initial_state,
+        'update_gate': update_gate,
+        'cell_state': cell_state
+    }
     return output_shape, params
 
   def apply(self, params, inputs, state):
@@ -263,10 +270,15 @@ class UGRNN(RNNCell):
 
     return update * state + (1 - update) * cell
 
+
 class GRU(RNNCell):
   """Gated recurrent unit."""
 
-  def __init__(self, num_units, gate_bias=0., w_init=fan_in, b_init=zeros,
+  def __init__(self,
+               num_units,
+               gate_bias=0.,
+               w_init=fan_in,
+               b_init=zeros,
                h_init=zeros):
     """Gated recurrent unit (GRU) Cell.
 
@@ -306,8 +318,12 @@ class GRU(RNNCell):
 
     key, key_ic = jax.random.split(key, 2)
     initial_state = super().init_initial_state(key_ic)
-    params = {'initial_state': initial_state, 'update_gate': update_gate,
-              'reset_gate': reset_gate, 'cell_state': cell_state}
+    params = {
+        'initial_state': initial_state,
+        'update_gate': update_gate,
+        'reset_gate': reset_gate,
+        'cell_state': cell_state
+    }
     return output_shape, params
 
   def apply(self, params, inputs, state):
@@ -325,7 +341,11 @@ class GRU(RNNCell):
 class LSTM(RNNCell):
   """Long-short term memory (LSTM)."""
 
-  def __init__(self, num_units, forget_bias=1., w_init=fan_in, b_init=zeros,
+  def __init__(self,
+               num_units,
+               forget_bias=1.,
+               w_init=fan_in,
+               b_init=zeros,
                h_init=zeros):
     """Long-short term memory (LSTM) Cell.
 
@@ -376,9 +396,13 @@ class LSTM(RNNCell):
 
     key, key_ic = jax.random.split(key, 2)
     initial_state = super().init_initial_state(key_ic)
-    params = {'initial_state': initial_state, 'forget_gate': forget_gate,
-              'update_gate': update_gate, 'output_gate': output_gate,
-              'cell_state': cell_state}
+    params = {
+        'initial_state': initial_state,
+        'forget_gate': forget_gate,
+        'update_gate': update_gate,
+        'output_gate': output_gate,
+        'cell_state': cell_state
+    }
     return output_shape, params
 
   def apply(self, params, inputs, full_state):
@@ -401,7 +425,8 @@ class LSTM(RNNCell):
     return jnp.concatenate((new_state, new_cell), axis=-1)
 
 
-def embedding(vocab_size, embedding_size,
+def embedding(vocab_size,
+              embedding_size,
               initializer=jax.nn.initializers.orthogonal()):
   """Builds a token embedding.
 

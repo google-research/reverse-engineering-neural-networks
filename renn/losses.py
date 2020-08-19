@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Functions for computing loss."""
 
 import jax.numpy as jnp
 from jax import lax
 
 __all__ = ['binary_xent', 'multiclass_xent']
+
 
 def binary_xent(logits, labels):
   """ Cross-entropy loss in in a two-class classification problem,
@@ -36,12 +36,16 @@ def binary_xent(logits, labels):
       jnp.log(1 + jnp.exp(-jnp.abs(squeezed_logits)))
   return jnp.mean(log_likelihood)
 
+
 def multiclass_xent(logits, labels):
   # zero max of logit
   shifted = logits - lax.stop_gradient(logits.max(axis=-1, keepdims=True))
-  log_probs = shifted - jnp.log(jnp.sum(jnp.exp(shifted), axis=-1, keepdims=True))
+  log_probs = shifted - jnp.log(
+      jnp.sum(jnp.exp(shifted), axis=-1, keepdims=True))
 
-  log_likelihood = jnp.take_along_axis(log_probs, labels[:, jnp.newaxis], axis=1)
+  log_likelihood = jnp.take_along_axis(log_probs,
+                                       labels[:, jnp.newaxis],
+                                       axis=1)
   xent_loss = -1 * jnp.mean(log_likelihood)
 
   return xent_loss

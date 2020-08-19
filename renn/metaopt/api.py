@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Meta-optimization framework."""
 
 from collections import defaultdict
@@ -58,9 +57,9 @@ def unroll_scan(initial_params, loss_fun, optimizer, num_steps, decorator):
   @decorator
   def _apply(state, step):
     """Applies one step of the optimizer."""
-    params = get_params(state)                   # Get inner parameters.
-    f, df = f_df(params, step)                   # Loss and gradient.
-    next_state = opt_update(step, df, state)     # Step the optimizer.
+    params = get_params(state)  # Get inner parameters.
+    f, df = f_df(params, step)  # Loss and gradient.
+    next_state = opt_update(step, df, state)  # Step the optimizer.
     return next_state, f
 
   # Initialize and run the optimizer.
@@ -112,7 +111,7 @@ def unroll_for(initial_params, loss_fun, optimizer, extract_state, steps):
   for step in steps:
 
     # Query function to get loss and gradient.
-    params = get_params(opt_state)       # Get parameters.
+    params = get_params(opt_state)  # Get parameters.
     loss, gradient = f_df(params, step)  # Loss and gradient.
 
     # Store current loss, parameters, and optimizer state.
@@ -128,8 +127,12 @@ def unroll_for(initial_params, loss_fun, optimizer, extract_state, steps):
   return {k: jax.device_get(v) for k, v in store.items()}
 
 
-def build_metaobj(problem_fun, optimizer_fun, num_inner_steps,
-                  meta_loss=losses.mean, l2_penalty=0.0, decorator=jax.remat):
+def build_metaobj(problem_fun,
+                  optimizer_fun,
+                  num_inner_steps,
+                  meta_loss=losses.mean,
+                  l2_penalty=0.0,
+                  decorator=jax.remat):
   """Builds a meta-objective function.
 
   Args:
@@ -196,6 +199,7 @@ def evaluate(opt, problem_fun, num_steps, eval_key, num_repeats=64):
     losses: Array of loss values with shape (num_repeats, num_steps)
       containing the training loss curve for each random seed.
   """
+
   @jax.jit
   def _run(k):
     return utils.snd(unroll_scan(*problem_fun(k), opt, num_steps))
@@ -204,8 +208,14 @@ def evaluate(opt, problem_fun, num_steps, eval_key, num_repeats=64):
   return jax.device_get(jax.vmap(_run)(keys))
 
 
-def outer_loop(key, initial_meta_params, meta_objective, meta_optimizer,
-               steps, batch_size=1, save_every=None, clip_value=np.inf):
+def outer_loop(key,
+               initial_meta_params,
+               meta_objective,
+               meta_optimizer,
+               steps,
+               batch_size=1,
+               save_every=None,
+               clip_value=np.inf):
   """Meta-trains an optimizer.
 
   Args:

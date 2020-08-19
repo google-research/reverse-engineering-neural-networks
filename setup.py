@@ -23,9 +23,9 @@ with open('renn/version.py') as f:
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
-    README = open(os.path.join(here, 'README.md')).read()
+  README = open(os.path.join(here, 'README.md')).read()
 except IOError:
-    README = ''
+  README = ''
 
 setup(
     name='renn',
@@ -36,12 +36,7 @@ setup(
     author_email='nirum@google.com',
     packages=find_packages(exclude=["examples"]),
     python_requires='>=3.7',
-    install_requires=[
-        'numpy >=1.12',
-        'jax',
-        'jaxlib',
-        'tqdm'
-    ],
+    install_requires=['numpy >=1.12', 'jax', 'jaxlib', 'tqdm'],
     url='https://github.com/google-research/reverse-engineering-neural-networks',
     license='Apache-2.0',
 )

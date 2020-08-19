@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Load tasks from the library."""
 
 import jax
@@ -24,7 +23,6 @@ from sklearn.datasets import make_moons
 from .task_lib import classification
 from .task_lib import quadratic
 from .task_lib import regression
-
 
 __all__ = [
     'quad',
@@ -44,14 +42,8 @@ quad = quadratic.loguniform
 
 def two_moons(num_samples=1024, l2_pen=5e-3, seed=0):
   num_classes = 2
-  model = stax.serial(
-      stax.Dense(64),
-      stax.tanh,
-      stax.Dense(64),
-      stax.tanh,
-      stax.Dense(64),
-      stax.tanh,
-      stax.Dense(1))
+  model = stax.serial(stax.Dense(64), stax.tanh, stax.Dense(64), stax.tanh,
+                      stax.Dense(64), stax.tanh, stax.Dense(1))
 
   x, y = make_moons(n_samples=num_samples,
                     shuffle=True,
