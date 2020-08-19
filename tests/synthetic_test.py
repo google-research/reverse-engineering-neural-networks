@@ -24,7 +24,8 @@ def test_constant_sampler():
   sample_nums = [10, 15, 16, 18]
 
   for val in constant_values:
-    s = synthetic.constant_sampler(value=val)
+    s, max_length = synthetic.constant_sampler(value=val)
+    assert max_length == val
     for num in sample_nums:
       assert len(s(num)) == num
       assert len(set(s(num))) == 1
@@ -39,7 +40,9 @@ def test_uniform_sampler():
   sample_nums = [10, 15, 16, 18]
 
   for interval in intervals:
-    s = synthetic.uniform_sampler(min_val=interval[0], max_val=interval[1])
+    s, max_length = synthetic.uniform_sampler(min_val=interval[0],
+                                              max_val=interval[1])
+    assert max_length == interval[1]
     for num in sample_nums:
       samples = s(num)
       assert len(samples) == num

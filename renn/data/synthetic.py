@@ -26,7 +26,9 @@ def constant_sampler(value):
   def sample(num_samples):
     return np.full((num_samples,), value)
 
-  return sample
+  max_length = value
+
+  return sample, max_length
 
 
 def uniform_sampler(min_val, max_val):
@@ -36,7 +38,9 @@ def uniform_sampler(min_val, max_val):
   def sample(num_samples):
     return np.random.randint(min_val, max_val + 1, size=(num_samples,))
 
-  return sample
+  max_length = max_val
+
+  return sample, max_length
 
 
 def build_vocab(valences=None, num_classes=3):
@@ -84,7 +88,7 @@ class Unordered:
     self.batch_size = batch_size
 
     if length_sampler in SAMPLERS.keys():
-      self.sampler = SAMPLERS[length_sampler](**sampler_params)
+      self.sampler, self.max_len = SAMPLERS[length_sampler](**sampler_params)
     else:
       raise ValueError(f'length_sampler must be one of {SAMPLERS.keys()}')
 
