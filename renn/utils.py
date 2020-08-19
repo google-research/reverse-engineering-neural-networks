@@ -197,7 +197,7 @@ def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
     """
 
     all_time_logits = network_apply_fun(params, batch['inputs'])
-    end_logits = select(all_time_logits, batch['index'])
+    end_logits = select(all_time_logits, batch['index'] - 1)
 
     return basic_loss_fun(end_logits,
                           batch['labels']) + regularization_fun(params)
@@ -217,7 +217,7 @@ def make_acc_fun(network_apply_fun, num_outputs=1):
   @jax.jit
   def accuracy_fun(params, batch):
     all_time_logits = network_apply_fun(params, batch['inputs'])
-    end_logits = select(all_time_logits, batch['index'])
+    end_logits = select(all_time_logits, batch['index'] - 1)
     predictions = jnp.squeeze(prediction_function(end_logits))
     accuracies = (batch['labels'] == predictions).astype(jnp.int32)
     return jnp.mean(accuracies)
