@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests RNN cells."""
 
 import jax
@@ -84,12 +83,7 @@ def test_embedding():
 
 
 @pytest.fixture(scope="module",
-                params=[
-                    cells.VanillaRNN,
-                    cells.GRU,
-                    cells.LSTM,
-                    cells.UGRNN
-                ])
+                params=[cells.VanillaRNN, cells.GRU, cells.LSTM, cells.UGRNN])
 def rnn_cell(request):
   """Fixture that builds an RNN Cell."""
   base_key = jax.random.PRNGKey(0)
@@ -117,13 +111,13 @@ def test_rnn_output_shape(rnn_cell):
 
 
 def test_rnn_apply(rnn_cell):
-    """Tests the single step apply method."""
-    cell, output_shape, params, inputs, state = rnn_cell
+  """Tests the single step apply method."""
+  cell, output_shape, params, inputs, state = rnn_cell
 
-    new_state = cell.apply(params, inputs, state)
+  new_state = cell.apply(params, inputs, state)
 
-    # State shape should not change.
-    assert new_state.shape == state.shape
+  # State shape should not change.
+  assert new_state.shape == state.shape
 
 
 def test_batch_initial_shape(rnn_cell):
@@ -187,8 +181,8 @@ def test_vrnn_param_shape():
       'initial_state': (num_units,),
       'weights': (
           (num_units, num_inputs),  # Input weight matrix.
-          (num_units, num_units),   # Recurrent weight matrix.
-          (num_units,))                  # Bias shape.
+          (num_units, num_units),  # Recurrent weight matrix.
+          (num_units,))  # Bias shape.
   }
 
   # Test shape of the initial state vector.

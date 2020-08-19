@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utilities for optimization."""
 
 import jax
@@ -22,13 +21,7 @@ import numpy as np
 import tqdm
 
 __all__ = [
-    'batch_mean',
-    'norm',
-    'identity',
-    'fst',
-    'snd',
-    'optimize',
-    'one_hot',
+    'batch_mean', 'norm', 'identity', 'fst', 'snd', 'optimize', 'one_hot',
     'compose'
 ]
 
@@ -81,10 +74,12 @@ def snd(xs):
 
 def compose(*funcs):
   """Returns a function that is the composition of multiple functions."""
+
   def wrapper(x):
     for func in reversed(funcs):
       x = func(x)
     return x
+
   return wrapper
 
 
@@ -204,9 +199,11 @@ def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
     all_time_logits = network_apply_fun(params, batch['inputs'])
     end_logits = select(all_time_logits, batch['index'])
 
-    return basic_loss_fun(end_logits, batch['labels']) + regularization_fun(params)
+    return basic_loss_fun(end_logits,
+                          batch['labels']) + regularization_fun(params)
 
   return total_loss_fun
+
 
 def make_acc_fun(network_apply_fun, num_outputs=1):
   """ Given a network function and number of outputs, returns an accuracy

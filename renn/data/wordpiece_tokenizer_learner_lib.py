@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Algorithm for learning wordpiece vocabulary."""
 
 from __future__ import absolute_import
@@ -20,11 +19,12 @@ from __future__ import division
 from __future__ import print_function
 import collections
 
-Params = collections.namedtuple('Params', 'upper_thresh lower_thresh '
-                                'num_iterations max_input_tokens '
-                                'max_token_length max_unique_chars vocab_size '
-                                'slack_ratio include_joiner_token joiner '
-                                'reserved_tokens')
+Params = collections.namedtuple(
+    'Params', 'upper_thresh lower_thresh '
+    'num_iterations max_input_tokens '
+    'max_token_length max_unique_chars vocab_size '
+    'slack_ratio include_joiner_token joiner '
+    'reserved_tokens')
 
 
 def extract_char_tokens(word_counts):
@@ -182,7 +182,8 @@ def get_allowed_chars(all_counts, max_unique_chars):
 
   # Sort by count, then alphabetically.
   sorted_counts = sorted(sorted(char_counts.items(), key=lambda x: x[0]),
-                         key=lambda x: x[1], reverse=True)
+                         key=lambda x: x[1],
+                         reverse=True)
 
   allowed_chars = set()
   for i in range(min(len(sorted_counts), max_unique_chars)):
@@ -204,8 +205,7 @@ def filter_input_words(all_counts, allowed_chars, max_input_tokens):
 
   filtered_counts = []
   for word, count in all_counts:
-    if (max_input_tokens != -1 and
-        len(filtered_counts) >= max_input_tokens):
+    if (max_input_tokens != -1 and len(filtered_counts) >= max_input_tokens):
       break
     has_unallowed_chars = False
     for char in word:
@@ -238,7 +238,8 @@ def generate_final_vocabulary(reserved_tokens, char_tokens, curr_tokens):
 
   # Sort by count, then alphabetically.
   sorted_tokens = sorted(sorted(curr_tokens.items(), key=lambda x: x[0]),
-                         key=lambda x: x[1], reverse=True)
+                         key=lambda x: x[1],
+                         reverse=True)
   for token, _ in sorted_tokens:
     vocab_char_arrays.append(token)
 

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Neural networks classification loss on mnist."""
 
 import jax
@@ -59,11 +58,10 @@ def conv2d(num_classes, layers=((32, 5, 2), (16, 3, 2), (16, 3, 2))):
 
   # Concatenate convolutional layers.
   for num_units, kernel_size, stride in layers:
-    stack += [stax.Conv(num_units,
-                        (kernel_size, kernel_size),
-                        (stride, stride),
-                        padding='SAME'),
-              stax.Relu]
+    stack += [
+        stax.Conv(num_units, (kernel_size, kernel_size), (stride, stride),
+                  padding='SAME'), stax.Relu
+    ]
 
   # Output layer.
   stack += [stax.Flatten, stax.Dense(num_classes), stax.LogSoftmax]

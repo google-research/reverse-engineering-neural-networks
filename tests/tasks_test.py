@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests tasks."""
 
 import jax
@@ -24,15 +23,12 @@ from renn.metaopt import tasks
 
 class LinearRegressionTest:
 
-  @pytest.mark.parametrize(
-      "dim,num_datapoints,seed,step",
-      [
-        (2, 10, 1, 3),
-        (20, 100, 0, 0),
-        (50, 50, 11, 5),
-        (100, 50, 32, 13),
-      ]
-  )
+  @pytest.mark.parametrize("dim,num_datapoints,seed,step", [
+      (2, 10, 1, 3),
+      (20, 100, 0, 0),
+      (50, 50, 11, 5),
+      (100, 50, 32, 13),
+  ])
   def test_loss(self, dim, num_datapoints, seed, step):
     """Smoke test for the quadratic loss function."""
 
@@ -41,16 +37,13 @@ class LinearRegressionTest:
     key = jax.random.PRNGKey(seed)
     params, loss_fun = problem_fun(key)
 
-    loss = loss_fun(params, step)   # Compute loss.
-    assert loss >= 0.0              # Loss must be non-negative.
+    loss = loss_fun(params, step)  # Compute loss.
+    assert loss >= 0.0  # Loss must be non-negative.
 
-  @pytest.mark.parametrize(
-      "dim,num_datapoints,num_seeds",
-      [
-        (2, 5, 10),
-        (20, 50, 10),
-      ]
-  )
+  @pytest.mark.parametrize("dim,num_datapoints,num_seeds", [
+      (2, 5, 10),
+      (20, 50, 10),
+  ])
   def test_batch(self, dim, num_datapoints, num_seeds):
     """Tests batching of multiple problems."""
 
@@ -67,6 +60,7 @@ class LinearRegressionTest:
       _, loss_fun = problem_fun(prng)
       step = 0  # Loss doesn't depend on the step, so any value here works.
       return loss_fun(params, step)
+
     batch_loss = jax.vmap(batch_loss, in_axes=(None, 0))
 
     # Apply the batched outer loss function.
@@ -79,16 +73,13 @@ class LinearRegressionTest:
 
 class LogisticRegressionTest:
 
-  @pytest.mark.parametrize(
-      "dim,num_datapoints,seed,step",
-      [
-        (2, 10, 9, 14),
-        (10, 50, 1, 3),
-        (20, 50, 0, 0),
-        (50, 100, 11, 5),
-        (100, 50, 32, 13),
-      ]
-  )
+  @pytest.mark.parametrize("dim,num_datapoints,seed,step", [
+      (2, 10, 9, 14),
+      (10, 50, 1, 3),
+      (20, 50, 0, 0),
+      (50, 100, 11, 5),
+      (100, 50, 32, 13),
+  ])
   def test_loss(self, dim, num_datapoints, seed, step):
     """Smoke test for the quadratic loss function."""
 
@@ -98,16 +89,13 @@ class LogisticRegressionTest:
     key = jax.random.PRNGKey(seed)
     params, loss_fun = problem_fun(key)
 
-    loss = loss_fun(params, step)   # Compute loss.
-    assert loss >= 0.0              # Loss must be non-negative.
+    loss = loss_fun(params, step)  # Compute loss.
+    assert loss >= 0.0  # Loss must be non-negative.
 
-  @pytest.mark.parametrize(
-      "dim,num_datapoints,num_seeds",
-      [
-        (2, 5, 10),
-        (20, 50, 10),
-      ]
-  )
+  @pytest.mark.parametrize("dim,num_datapoints,num_seeds", [
+      (2, 5, 10),
+      (20, 50, 10),
+  ])
   def test_batch(self, dim, num_datapoints, num_seeds):
     """Tests batching of multiple problems."""
 
@@ -125,6 +113,7 @@ class LogisticRegressionTest:
       _, loss_fun = problem_fun(prng)
       step = 0  # Loss doesn't depend on the step, so any value here works.
       return loss_fun(params, step)
+
     batch_loss = jax.vmap(batch_loss, in_axes=(None, 0))
 
     # Apply the batched outer loss function.
