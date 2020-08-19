@@ -89,6 +89,7 @@ class Unordered:
       raise ValueError(f'length_sampler must be one of {SAMPLERS.keys()}')
 
     self.vocab = build_vocab(num_classes=num_classes)
+    self.set_max_len(length_sampler, sampler_params)
 
   def __iter__(self):
     return self
@@ -123,3 +124,12 @@ class Unordered:
     """ Calculates the score, i.e. the amount of accumulated
     evidence in the sentence, for each class"""
     return sum([self.vocab[word] for word in sentence[:length]])
+
+  def set_max_len(self, length_sampler, sampler_params):
+    """ Sets the attribute self.max_len, which gives the maximum
+    possible length of a sentence """
+
+    if length_sampler == 'Constant':
+      self.max_len = sampler_params['value']
+    elif length_sampler == 'Uniform':
+      self.max_len = sampler_params['max_val']
