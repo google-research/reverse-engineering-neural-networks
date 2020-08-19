@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Synthetic Datasets."""
 
 import numpy as np
@@ -20,20 +19,25 @@ from renn import utils
 
 __all__ = ['Unordered']
 
+
 def constant_sampler(value):
   """Returns a sampling function which always returns the value 'value'"""
 
   def sample(num_samples):
-    return np.full((num_samples, ), value)
+    return np.full((num_samples,), value)
+
   return sample
+
 
 def uniform_sampler(min_val, max_val):
   """returns a sampling function which samples uniformly between min_val and
   max_val, inclusive"""
 
   def sample(num_samples):
-    return np.random.randint(min_val, max_val+1, size=(num_samples,))
+    return np.random.randint(min_val, max_val + 1, size=(num_samples,))
+
   return sample
+
 
 def build_vocab(valences=None, num_classes=3):
   """ Builds the vocabulary
@@ -42,7 +46,13 @@ def build_vocab(valences=None, num_classes=3):
   """
 
   if valences is None:
-    valences = {'very': 2, 'some': 1, 'neutral': 0, 'not': -1}
+    valences = {
+        'strongly_favor': 2,
+        'favor': 1,
+        'neutral': 0,
+        'against': -1,
+        'strongly_against': -2
+    }
 
   words = product(valences, range(num_classes))
 
@@ -56,16 +66,19 @@ def build_vocab(valences=None, num_classes=3):
   vocab = {i: _score(word) for i, word in enumerate(words)}
   return vocab
 
+
 class Unordered:
   """Synthetic dataset representing un-ordered classes, to mimic e.g.
   text-classification datasets like AG News (unlike, say, star-prediction or
   sentiment analysis, which features ordered classes"""
 
-  def __init__(self, num_classes=3, batch_size=64, length_sampler='Constant',
+  def __init__(self,
+               num_classes=3,
+               batch_size=64,
+               length_sampler='Constant',
                sampler_params={'value': 40}):
 
-    SAMPLERS = {'Constant': constant_sampler,
-                'Uniform': uniform_sampler}
+    SAMPLERS = {'Constant': constant_sampler, 'Uniform': uniform_sampler}
 
     self.num_classes = num_classes
     self.batch_size = batch_size
@@ -87,9 +100,13 @@ class Unordered:
     lengths = self.sampler(num_samples=self.batch_size)
     max_length = max(lengths)
 
-    batch = {'inputs': np.random.randint(len(self.vocab),
-                                         size=(self.batch_size, max_length)),
-             'index': lengths}
+    batch = {
+        'inputs':
+            np.random.randint(len(self.vocab),
+                              size=(self.batch_size, max_length + 1)),
+        'index':
+            lengths
+    }
 
     batch['labels'] = self.label_batch(batch)
 
@@ -99,11 +116,10 @@ class Unordered:
     """ Calculates class labels for a batch of sentences """
     zipped = zip(batch['inputs'], batch['index'])
 
-    class_scores =  np.array([self.score(s, l) for s, l in zipped])
+    class_scores = np.array([self.score(s, l) for s, l in zipped])
     return np.argmax(class_scores, axis=1)
 
   def score(self, sentence, length):
     """ Calculates the score, i.e. the amount of accumulated
     evidence in the sentence, for each class"""
     return sum([self.vocab[word] for word in sentence[:length]])
-
