@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Recurrent neural network (RNN) cells."""
 
 import jax
@@ -47,6 +46,7 @@ def unroll_rnn(initial_states, input_sequences, rnn_update, readout=identity):
   Returns:
     outputs: batch of outputs (batch_size, sequence_length, num_outputs).
   """
+
   def _step(state, inputs):
     next_state = rnn_update(inputs, state)
     outputs = readout(next_state)

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Serialization of pytrees."""
 
 import enum
@@ -56,7 +55,7 @@ def ndarray_to_bytes(arr):
 
 
 def bytes_to_ndarray(data):
-  buffer, dtype, shape = msgpack.unpackb(data, raw=True)
+  buffer, dtype, shape = msgpack.unpackb(data, raw=False)
   return np.frombuffer(buffer, dtype=dtype).reshape(shape)
 
 
@@ -74,7 +73,6 @@ def _ext_pack(x):
 
 
 def _ext_unpack(code, data):
-
   if code == _CustomExtType.ndarray:
     return bytes_to_ndarray(data)
 

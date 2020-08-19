@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines quadratic loss functions."""
 
 import jax
@@ -54,14 +53,15 @@ def loguniform(n, lambda_min, lambda_max, precision=HIGHEST):
                                          shape=(n,),
                                          minval=lambda_min,
                                          maxval=lambda_max)
-    eigenvalues = 10 ** log_eigenvalues
+    eigenvalues = 10**log_eigenvalues
 
     # Build orthonormal basis.
     basis = jax.nn.initializers.orthogonal()(qkey, shape=(n, n))
 
     # Define hessian.
     hess = jnp.dot(jnp.dot(basis, jnp.diag(eigenvalues), precision=precision),
-                   basis.T, precision=precision)
+                   basis.T,
+                   precision=precision)
 
     # Random vector for the linear term in the loss.
     v = jax.random.normal(vkey, shape=(n,))

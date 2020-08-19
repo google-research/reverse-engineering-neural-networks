@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests utilities."""
 
 import jax.numpy as jnp
@@ -39,7 +38,7 @@ def test_compose():
   assert utils.compose(utils.snd, utils.fst)(data) == 1
   assert utils.compose(utils.fst, utils.snd)(data) == 3
   assert utils.compose(utils.snd, utils.snd)(data) == 4
-  assert utils.compose(str, np.abs, lambda x: x ** 3)(-2) == '8'
+  assert utils.compose(str, np.abs, lambda x: x**3)(-2) == '8'
 
 
 def test_empty():
@@ -52,7 +51,9 @@ def test_empty():
     utils.snd([])
 
   with pytest.raises(IndexError):
-    utils.snd([0,])
+    utils.snd([
+        0,
+    ])
 
 
 def test_array_norm():
@@ -62,6 +63,7 @@ def test_array_norm():
   n = 10
   l2_norm = utils.norm(jnp.ones(n))
   assert np.allclose(jnp.sqrt(n), l2_norm)
+
 
 def test_dict_norm():
   """Tests the (vectorized) l2 norm of a pytree."""
@@ -110,15 +112,17 @@ def test_one_hot_empty():
 def test_select():
   """Tests the select function."""
   sequences = np.stack([
-    [[0, 1], [2, 3], [4, 5]],
-    [[6, 7], [8, 9], [10, 11]],
-  ]);
+      [[0, 1], [2, 3], [4, 5]],
+      [[6, 7], [8, 9], [10, 11]],
+  ])
 
   indices = np.array([0, 1])
-  assert np.allclose(utils.select(sequences, indices), jnp.array([[0, 1], [8, 9]]))
+  assert np.allclose(utils.select(sequences, indices),
+                     jnp.array([[0, 1], [8, 9]]))
 
   indices = np.array([2, 0])
-  assert np.allclose(utils.select(sequences, indices), jnp.array([[4, 5], [6, 7]]))
+  assert np.allclose(utils.select(sequences, indices),
+                     jnp.array([[4, 5], [6, 7]]))
 
 
 def test_batch_mean():
@@ -130,9 +134,9 @@ def test_batch_mean():
   """
 
   # Generates a batched version of a square function.
-  square_fun = utils.batch_mean(lambda x: x ** 2, (0,))
+  square_fun = utils.batch_mean(lambda x: x**2, (0,))
 
   # Map the function over a batch of data.
   data = jnp.array([0, 1, 2])
   result = square_fun(data)
-  assert result == jnp.mean(data ** 2)
+  assert result == jnp.mean(data**2)

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Fixed point finding routines."""
 
 import jax
@@ -55,13 +54,17 @@ def build_fixed_point_loss(rnn_cell, cell_params):
         for a list or array of states.
     """
     h_next = rnn_cell.batch_apply(cell_params, x, h)
-    return 0.5 * jnp.sum((h - h_next) ** 2, axis=1)
+    return 0.5 * jnp.sum((h - h_next)**2, axis=1)
 
   return fixed_point_loss_fun
 
 
-def find_fixed_points(fp_loss_fun, initial_states, x_star, optimizer,
-                      tolerance, num_steps=10000):
+def find_fixed_points(fp_loss_fun,
+                      initial_states,
+                      x_star,
+                      optimizer,
+                      tolerance,
+                      steps=range(1000)):
   """Run fixed point optimization.
 
   Args:
@@ -70,25 +73,23 @@ def find_fixed_points(fp_loss_fun, initial_states, x_star, optimizer,
     x_star: Input at which to compute fixed points.
     optimizer: A jax.experimental.optimizers tuple.
     tolerance: Stopping tolerance threshold.
-    num_steps: Number of steps to run (Default: 10000).
+    steps: Iterator over steps.
 
   Returns:
     fixed_points: Array of fixed points for each tolerance.
     loss_hist: Array containing fixed point loss curve.
     squared_speeds: Array containing the squared speed of each fixed point.
   """
-  loss_hist, fps = utils.optimize(
-      lambda h: jnp.mean(fp_loss_fun(h, x_star)),
-      initial_states,
-      optimizer,
-      num_steps,
-      stop_tol=tolerance)
+  loss_hist, fps = utils.optimize(lambda h: jnp.mean(fp_loss_fun(h, x_star)),
+                                  initial_states,
+                                  optimizer,
+                                  steps,
+                                  stop_tol=tolerance)
 
   fixed_points = jax.device_get(fps)
-  loss_history = jax.device_get(loss_hist)
   squared_speeds = jax.device_get(fp_loss_fun(fps, x_star))
 
-  return fixed_points, loss_history, squared_speeds
+  return fixed_points, loss_hist, squared_speeds
 
 
 def exclude_outliers(points, threshold=np.inf, verbose=False):

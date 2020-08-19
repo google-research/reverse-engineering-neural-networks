@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Define simple learned optimizer models."""
 
 import numbers
@@ -20,7 +19,6 @@ import jax
 from jax.experimental import optimizers
 from jax.experimental import stax
 import jax.numpy as jnp
-
 
 # Aliases for standard initializers and nonlinearities.
 fan_in = jax.nn.initializers.variance_scaling(1., 'fan_in', 'normal')
@@ -270,9 +268,8 @@ def gradgram(key, tau, scale_grad, scale_gram, base_grad=0, base_gram=0):
 
   # Generalized inner product.
   innerprod = jax.jit(
-      jax.vmap(
-          jax.vmap(lambda x, y: -jnp.sum(x * y), in_axes=(0, None)),
-          in_axes=(None, 0)))
+      jax.vmap(jax.vmap(lambda x, y: -jnp.sum(x * y), in_axes=(0, None)),
+               in_axes=(None, 0)))
 
   # Batched norm.
   norms = jax.jit(jax.vmap(jnp.linalg.norm, in_axes=0))

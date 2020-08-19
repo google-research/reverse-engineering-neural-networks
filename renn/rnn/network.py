@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Recurrent neural network (RNN) helper functions."""
 
 import functools
@@ -96,8 +95,7 @@ def build_rnn(num_tokens, emb_size, cell, num_outputs=1):
     # Run the RNN.
     initial_states = cell.get_initial_state(rnn_params,
                                             batch_size=tokens.shape[0])
-    return unroll.unroll_rnn(initial_states,
-                             inputs,
+    return unroll.unroll_rnn(initial_states, inputs,
                              functools.partial(cell.batch_apply, rnn_params),
                              functools.partial(readout_apply, readout_params))
 
@@ -106,7 +104,7 @@ def build_rnn(num_tokens, emb_size, cell, num_outputs=1):
 
 def mse(y, yhat):
   """Mean squared error loss."""
-  return 0.5 * jnp.mean((y - yhat) ** 2)
+  return 0.5 * jnp.mean((y - yhat)**2)
 
 
 def eigsorted(jac):
