@@ -7,7 +7,6 @@ import tensorflow as tf
 from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
 
-
 __all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun']
 
 
@@ -48,7 +47,6 @@ def padded_batch(dset, batch_size, sequence_length, label_shape=()):
   return dset
 
 
-
 def load_text_classification(name, split, preprocess_fun, data_dir=None):
   """Helper that loads a text classification dataset."""
 
@@ -61,23 +59,31 @@ def load_text_classification(name, split, preprocess_fun, data_dir=None):
   return dset
 
 
-def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
-            transform_fn=utils.identity, filter_fn=None, data_dir=None):
+def ag_news(split,
+            vocab_file,
+            sequence_length=100,
+            batch_size=64,
+            transform_fn=utils.identity,
+            filter_fn=None,
+            data_dir=None):
   """Loads the ag news dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
 
   def _preprocess(d):
     """Applies tokenization."""
     tokens = tokenize(d['description']).flat_values  # Note: we ignore 'title'
-    preprocessed =  {
-                    'inputs': tokens,
-                    'labels': d['label'],
-                    'index': tf.size(tokens),
-                    }
+    preprocessed = {
+        'inputs': tokens,
+        'labels': d['label'],
+        'index': tf.size(tokens),
+    }
     return transform_fn(preprocessed)
 
   # Load dataset.
-  dset = load_text_classification('ag_news_subset', split, _preprocess, data_dir=data_dir)
+  dset = load_text_classification('ag_news_subset',
+                                  split,
+                                  _preprocess,
+                                  data_dir=data_dir)
 
   # Apply custom filter.
   if filter_fn is not None:
@@ -89,39 +95,60 @@ def ag_news(split, vocab_file, sequence_length=100, batch_size=64,
   return dset
 
 
-def goemotions(split, vocab_file, sequence_length=50, batch_size=64,
-               transform=utils.identity, filter_fn=None, data_dir=None):
+def goemotions(split,
+               vocab_file,
+               sequence_length=50,
+               batch_size=64,
+               transform=utils.identity,
+               filter_fn=None,
+               data_dir=None):
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
 
-  emotions = ('admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'neutral', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise')
+  emotions = ('admiration', 'amusement', 'anger', 'annoyance', 'approval',
+              'caring', 'confusion', 'curiosity', 'desire', 'disappointment',
+              'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear',
+              'gratitude', 'grief', 'joy', 'love', 'nervousness', 'neutral',
+              'optimism', 'pride', 'realization', 'relief', 'remorse',
+              'sadness', 'surprise')
 
   def _preprocess(d):
     tokens = tokenize(d['comment_text']).flat_values
     index = tf.size(tokens)
     labels = tf.convert_to_tensor([d[e] for e in emotions], dtype=tf.int64)
     preprocessed = {
-                   'inputs': tokens,
-                   'labels': labels,
-                   'index': index,
-                   }
+        'inputs': tokens,
+        'labels': labels,
+        'index': index,
+    }
     return transform(preprocessed)
 
   # Load dataset.
-  dset = load_text_classification('goemotions', split, _preprocess, data_dir=data_dir)
+  dset = load_text_classification('goemotions',
+                                  split,
+                                  _preprocess,
+                                  data_dir=data_dir)
 
   # Apply custom filter.
   if filter_fn is not None:
     dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
-  dset = padded_batch(dset, batch_size, sequence_length, label_shape=(len(emotions),))
+  dset = padded_batch(dset,
+                      batch_size,
+                      sequence_length,
+                      label_shape=(len(emotions),))
 
   return dset
 
 
-def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
-         transform=utils.identity, filter_fn=None, data_dir=None):
+def imdb(split,
+         vocab_file,
+         sequence_length=1000,
+         batch_size=64,
+         transform=utils.identity,
+         filter_fn=None,
+         data_dir=None):
   """Loads the imdb reviews dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
 
@@ -129,14 +156,17 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
     """Applies tokenization."""
     tokens = tokenize(d['text']).flat_values
     preprocessed = {
-                   'inputs': tokens,
-                   'labels': d['label'],
-                   'index': tf.size(tokens),
-                    }
+        'inputs': tokens,
+        'labels': d['label'],
+        'index': tf.size(tokens),
+    }
     return transform(preprocessed)
 
   # Load dataset.
-  dset = load_text_classification('imdb_reviews', split, _preprocess, data_dir=data_dir)
+  dset = load_text_classification('imdb_reviews',
+                                  split,
+                                  _preprocess,
+                                  data_dir=data_dir)
 
   # Apply custom filter.
   if filter_fn is not None:
@@ -148,8 +178,13 @@ def imdb(split, vocab_file, sequence_length=1000, batch_size=64,
   return dset
 
 
-def snli(split, vocab_file, sequence_length=75, batch_size=64,
-         transform=utils.identity, filter_fn=None, data_dir=None):
+def snli(split,
+         vocab_file,
+         sequence_length=75,
+         batch_size=64,
+         transform=utils.identity,
+         filter_fn=None,
+         data_dir=None):
   """Loads the SNLI dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
 
@@ -160,9 +195,9 @@ def snli(split, vocab_file, sequence_length=75, batch_size=64,
     sep = tokenize(SEP).flat_values
     tokens = tf.concat([hypothesis, sep, premise], axis=0)
     return transform({
-      'inputs': tokens,
-      'labels': d['label'],
-      'index': tf.size(tokens),
+        'inputs': tokens,
+        'labels': d['label'],
+        'index': tf.size(tokens),
     })
 
   # Load dataset.

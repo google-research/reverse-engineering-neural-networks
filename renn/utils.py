@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utilities for optimization."""
 
 import jax
@@ -22,13 +21,7 @@ import numpy as np
 import tqdm
 
 __all__ = [
-    'batch_mean',
-    'norm',
-    'identity',
-    'fst',
-    'snd',
-    'optimize',
-    'one_hot',
+    'batch_mean', 'norm', 'identity', 'fst', 'snd', 'optimize', 'one_hot',
     'compose'
 ]
 
@@ -81,15 +74,16 @@ def snd(xs):
 
 def compose(*funcs):
   """Returns a function that is the composition of multiple functions."""
+
   def wrapper(x):
     for func in reversed(funcs):
       x = func(x)
     return x
+
   return wrapper
 
 
-def optimize(loss_fun, x0, optimizer, num_steps,
-             iterator=tqdm.trange, stop_tol=-np.inf):
+def optimize(loss_fun, x0, optimizer, steps, stop_tol=-np.inf):
   """Run an optimizer on a given loss function.
 
   Args:
@@ -97,8 +91,7 @@ def optimize(loss_fun, x0, optimizer, num_steps,
     x0: Initial parameters.
     optimizer: An tuple of optimizer functions (init_opt, update_opt,
       get_params) from a jax.experimental.optimizers instance.
-    num_steps: Number of steps to run the optimizer.
-    iterator: Function used to iterate over steps (Default: tqdm.trange).
+    steps: Iterator over steps.
     stop_tol: Stop if the loss is below this value (Default: -np.inf).
 
   Returns:
@@ -120,19 +113,18 @@ def optimize(loss_fun, x0, optimizer, num_steps,
     return loss, update_opt(k, grads, state)
 
   # Store loss history.
-  loss_hist = np.empty(num_steps)
-  for k in iterator(num_steps):
+  loss_hist = []
+  for k in steps:
     f, opt_state = step(k, opt_state)
-    loss_hist[k] = f
+    loss_hist.append(f)
 
     if f <= stop_tol:
-      loss_hist = loss_hist[:k]
       break
 
   # Extract final parameters.
   final_params = get_params(opt_state)
 
-  return loss_hist, final_params
+  return np.array(loss_hist), final_params
 
 
 def one_hot(labels, num_classes, dtype=jnp.float32):
@@ -207,9 +199,11 @@ def make_loss_function(network_apply_fun, basic_loss_fun, regularization_fun):
     all_time_logits = network_apply_fun(params, batch['inputs'])
     end_logits = select(all_time_logits, batch['index'])
 
-    return basic_loss_fun(end_logits, batch['labels']) + regularization_fun(params)
+    return basic_loss_fun(end_logits,
+                          batch['labels']) + regularization_fun(params)
 
   return total_loss_fun
+
 
 def make_acc_fun(network_apply_fun, num_outputs=1):
   """ Given a network function and number of outputs, returns an accuracy

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests pytree serialization."""
 
 import jax
@@ -19,7 +18,6 @@ import numpy as np
 
 import pytest
 import renn
-
 
 # pytrees to use for testing.
 TREES = (
@@ -30,7 +28,10 @@ TREES = (
     ([3],),
     (np.array([1, 2, 3], dtype=np.int32),),
     (np.array([np.pi], dtype=np.float32),),
-    ({"a": 1, "b": 2},),
+    ({
+        "a": 1,
+        "b": 2
+    },),
     (renn.LinearRNN(np.ones(2), np.eye(2), 0.5),),
     (jax.device_get(renn.GRU(4).init(jax.random.PRNGKey(0), (-1, 1))[1]),),
 )

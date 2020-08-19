@@ -6,12 +6,10 @@ import os
 import tensorflow_datasets as tfds
 import renn
 
-
 parser = argparse.ArgumentParser(description='Generate vocab files.')
 parser.add_argument('dataset', type=str)
 parser.add_argument('--savedir', type=str, default='/tmp')
-parser.add_argument('--vocab_size', type=int, default=2 ** 15)
-
+parser.add_argument('--vocab_size', type=int, default=2**15)
 
 DATASETS = {
     # dataset name, split, and dictionary key that contains text

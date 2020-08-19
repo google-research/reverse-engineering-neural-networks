@@ -8,7 +8,6 @@ from renn.data import wordpiece_tokenizer_learner_lib as vocab_learner
 import tensorflow_text as text
 import tensorflow as tf
 
-
 __all__ = ['build_vocab', 'load_tokenizer']
 
 # Special tokens
@@ -51,8 +50,7 @@ def load_tokenizer(vocab_file, default_value=-1):
   """Loads a tokenizer from a vocab file."""
 
   # Build lookup table that maps subwords to ids.
-  table = tf.lookup.TextFileInitializer(vocab_file,
-                                        tf.string,
+  table = tf.lookup.TextFileInitializer(vocab_file, tf.string,
                                         tf.lookup.TextFileIndex.WHOLE_LINE,
                                         tf.int64,
                                         tf.lookup.TextFileIndex.LINE_NUMBER)

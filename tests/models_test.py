@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests optimizer models."""
 
 import jax
@@ -47,8 +46,12 @@ def test_cwrnn_optimizer():
   init_opt, update_opt, get_params = optimizer_fun(theta)
 
   # Dummy parameters and gradient.
-  params = jnp.array([1.,])
-  grads = jnp.array([1.,])
+  params = jnp.array([
+      1.,
+  ])
+  grads = jnp.array([
+      1.,
+  ])
 
   # Smoke test for the optimizer functions.
   opt_state = init_opt(jnp.array([1.]))
