@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for analysis utilities."""
 
 import jax.numpy as jnp
@@ -21,12 +20,13 @@ import pytest
 
 from renn import analysis_utils as au
 
+
 def test_pseudogrid():
   """ Tests for the pseudogrid function """
 
   # Test shape correctness
   dimensions = [10, 23, 40]
-  pts = [[10,50,23], [24,12], [7,8,9,12]]
+  pts = [[10, 50, 23], [24, 12], [7, 8, 9, 12]]
 
   for dimension in dimensions:
     for n_pts in pts:
@@ -36,13 +36,10 @@ def test_pseudogrid():
       assert pseudogrid_1.shape == (np.product(n_pts), dimension)
 
   # Test particular coordinates
-  coordinates = {0: [0, 1, 2],
-                 1: [1]}
+  coordinates = {0: [0, 1, 2], 1: [1]}
   dimension = 4
   pseudogrid_2 = au.pseudogrid(coordinates, dimension)
 
-  ideal = np.array([[0,1,0,0],
-                               [1,1,0,0],
-                               [2,1,0,0]])
+  ideal = np.array([[0, 1, 0, 0], [1, 1, 0, 0], [2, 1, 0, 0]])
 
   assert np.array_equal(ideal, pseudogrid_2)

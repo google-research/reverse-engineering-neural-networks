@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utilities for analysis."""
 
 from collections import defaultdict
@@ -19,6 +18,7 @@ from itertools import product
 import numpy as np
 
 __all__ = ['pseudogrid']
+
 
 def pseudogrid(coordinates, dimension):
   """Constructs a pseudogrid
@@ -56,10 +56,10 @@ def pseudogrid(coordinates, dimension):
   if max_specified_dim > 32:
     raise NotImplementedError('Maximum specified dimension cannot exceed 32')
 
-  points = np.meshgrid(*[all_coordinates[i] for i in range(max_specified_dim+1)])
-  points = np.stack(points).reshape(max_specified_dim+1, -1).T
+  points = np.meshgrid(
+      *[all_coordinates[i] for i in range(max_specified_dim + 1)])
+  points = np.stack(points).reshape(max_specified_dim + 1, -1).T
 
-  padding = np.zeros((points.shape[0],
-                      dimension - max_specified_dim - 1))
+  padding = np.zeros((points.shape[0], dimension - max_specified_dim - 1))
 
   return np.concatenate((points, padding), axis=1)
