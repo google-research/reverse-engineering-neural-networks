@@ -63,3 +63,16 @@ def pseudogrid(coordinates, dimension):
   padding = np.zeros((points.shape[0], dimension - max_specified_dim - 1))
 
   return np.concatenate((points, padding), axis=1)
+
+
+def squash(points, transform_object, n_dims_keep):
+  """ Given a set of points and a transform object,
+  transform the points using the transform, squash all
+  dimensions after the first n_dims_keep dimensions to
+  zero, and then transforms back to the original space
+  """
+
+  transformed = transform_object.transform(points)
+  transformed[:, n_dims_keep:] = 0.0
+  squashed = transform_object.inverse_transform(transformed)
+  return squashed
