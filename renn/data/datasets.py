@@ -7,12 +7,10 @@ import tensorflow as tf
 from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
 
-__all__ = [
-    'ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'serialized_mnist'
-]
+__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun']
 
 
-def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024, filter_fn=None):
+def pipeline(dset, preprocess_fun=utils.identity, filter_fn=None, bufsize=1024):
   """Common (standard) dataset pipeline.
   Preprocesses the data, filters it (if a filter function is specified),
   caches it, and shuffles it.
@@ -216,3 +214,71 @@ def snli(split,
   dset = padded_batch(dset, batch_size, sequence_length)
 
   return dset
+
+
+def mnist(split,
+          order='row',
+          batch_size=64,
+          transform=utils.identity,
+          filter_fn=None,
+          data_dir=None,
+          classes=None):
+  """Loads the serialized MNIST dataset.
+
+  Args:
+    classes - the subset of classes to keep.
+              If None, all will be kept"""
+
+  def _preprocess(example):
+    image = tf.squeeze(example['image'])
+    image = tf.cast(image, tf.float32) / 255.
+
+    if order == 'col':
+      image = tf.transpose(image, perm=[1, 0])
+
+    return transform({'inputs': image, 'labels': example['label'], 'index': 28})
+
+  # Load dataset.
+  dset = tfds.load('mnist', data_dir=data_dir)[split]
+
+  if classes is not None:
+    # Filter out images without the proper label
+    allowed_fn = _in_subset(classes)
+    # Remap labels to be in range (0, number of classes)
+    relabel_fn = _relabel_subset(classes)
+
+    dset = dset.filter(allowed_fn).map(relabel_fn)
+
+  dset = pipeline(dset, _preprocess, filter_fn)
+
+  # Batch dataset.
+  return dset.batch(batch_size)
+
+
+def _relabel_subset(subclasses):
+  """Provides a function for relabeling classes.
+  Example should contain key 'label' """
+
+  s = tf.constant(subclasses, dtype=tf.int64)
+
+  def relabel(example):
+    example.update({'label': tf.where(s == example['label'])[0][0]})
+    return example
+
+  return relabel
+
+
+def _in_subset(subclasses):
+  """Provides a function for determining whether
+  an example is in one of the provided subclasses.
+  Expmle should contain a key 'label' """
+
+  s = tf.constant(subclasses, dtype=tf.int64)
+
+  def in_subset(example):
+    label = example['label']
+    isallowed = tf.equal(s, label)
+    reduced = tf.reduce_sum(tf.cast(isallowed, tf.float32))
+    return tf.greater(reduced, tf.constant(0.))
+
+  return in_subset
