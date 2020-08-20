@@ -7,9 +7,7 @@ import tensorflow as tf
 from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
 
-__all__ = [
-    'ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'serialized_mnist'
-]
+__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun']
 
 
 def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024, filter_fn=None):
@@ -216,3 +214,26 @@ def snli(split,
   dset = padded_batch(dset, batch_size, sequence_length)
 
   return dset
+
+
+def mnist(split,
+          order='row',
+          batch_size=64,
+          transform=utils.identity,
+          filter_fn=None,
+          data_dir=None):
+  """Loads the MNIST data."""
+
+  def _preprocess(example):
+    """Relabels the items in an example to
+    'inputs', 'labels', and 'index',
+    and transposes each image if col-order is specified"""
+
+    # Remove singleton dimension from image which is initially [28,28,1]
+    image = tf.squeeze(example['image'])
+
+    # Cast to float and make values lie within [0,1]
+    image = tf.cast(image, tf.float32) / 255.
+
+    # Subtract mean from
+    #
