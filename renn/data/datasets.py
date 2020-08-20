@@ -7,14 +7,24 @@ import tensorflow as tf
 from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
 
-__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun']
+__all__ = [
+    'ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'serialized_mnist'
+]
 
 
-def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024):
-  """Common (standard) dataset pipeline."""
+def pipeline(dset, preprocess_fun=utils.identity, bufsize=1024, filter_fn=None):
+  """Common (standard) dataset pipeline.
+  Preprocesses the data, filters it (if a filter function is specified),
+  caches it, and shuffles it.
+
+  Note: Does not batch"""
 
   # Apply custom preprocessing.
   dset = dset.map(preprocess_fun)
+
+  # Apply custom filter.
+  if filter_fn is not None:
+    dset = dset.filter(filter_fn)
 
   # Cache and shuffle.
   dset = dset.cache().shuffle(buffer_size=bufsize)
@@ -47,14 +57,18 @@ def padded_batch(dset, batch_size, sequence_length, label_shape=()):
   return dset
 
 
-def load_text_classification(name, split, preprocess_fun, data_dir=None):
+def load_text_classification(name,
+                             split,
+                             preprocess_fun,
+                             filter_fn=None,
+                             data_dir=None):
   """Helper that loads a text classification dataset."""
 
   # Load raw dataset.
   dset = tfds.load(name, split=split, data_dir=data_dir)
 
   # Apply common dataset pipeline.
-  dset = pipeline(dset, preprocess_fun=preprocess_fun)
+  dset = pipeline(dset, preprocess_fun=preprocess_fun, filter_fn=filter_fn)
 
   return dset
 
@@ -83,11 +97,8 @@ def ag_news(split,
   dset = load_text_classification('ag_news_subset',
                                   split,
                                   _preprocess,
+                                  filter_fn,
                                   data_dir=data_dir)
-
-  # Apply custom filter.
-  if filter_fn is not None:
-    dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
@@ -127,11 +138,8 @@ def goemotions(split,
   dset = load_text_classification('goemotions',
                                   split,
                                   _preprocess,
+                                  filter_fn,
                                   data_dir=data_dir)
-
-  # Apply custom filter.
-  if filter_fn is not None:
-    dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset,
@@ -166,11 +174,8 @@ def imdb(split,
   dset = load_text_classification('imdb_reviews',
                                   split,
                                   _preprocess,
+                                  filter_fn,
                                   data_dir=data_dir)
-
-  # Apply custom filter.
-  if filter_fn is not None:
-    dset = dset.filter(filter_fn)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
@@ -201,11 +206,11 @@ def snli(split,
     })
 
   # Load dataset.
-  dset = load_text_classification('snli', split, _preprocess, data_dir=data_dir)
-
-  # Apply custom filter.
-  if filter_fn is not None:
-    dset = dset.filter(filter_fn)
+  dset = load_text_classification('snli',
+                                  split,
+                                  _preprocess,
+                                  filter_fn,
+                                  data_dir=data_dir)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
