@@ -31,11 +31,11 @@ def dumps(pytree):
 
 
 def load(file):
-  return msgpack.unpack(file, ext_hook=_ext_unpack)
+  return msgpack.unpack(file, ext_hook=_ext_unpack, raw=False)
 
 
 def loads(bytes):
-  return msgpack.unpackb(bytes, ext_hook=_ext_unpack)
+  return msgpack.unpackb(bytes, ext_hook=_ext_unpack, raw=False)
 
 
 class _CustomExtType(enum.IntEnum):
