@@ -7,7 +7,7 @@ import tensorflow as tf
 from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
 
-__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun']
+__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'mnist']
 
 
 def pipeline(dset, preprocess_fun=utils.identity, filter_fn=None, bufsize=1024):
