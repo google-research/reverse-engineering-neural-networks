@@ -4,6 +4,9 @@
 
 `renn` is a collection of research code for reverse engineering neural networks, with a focus on using tools from dynamical systems theory.
 
+## Warning
+**This repo is currently under active development. Consider it an alpha release. Better documentation, tests, and more are coming! (est. Q4 2020)**
+
 ## Contributing
 
 ### Formatting checks
