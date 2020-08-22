@@ -108,18 +108,20 @@ def goemotions(split,
                vocab_file,
                sequence_length=50,
                batch_size=64,
+               emotions=None,
                transform=utils.identity,
                filter_fn=None,
                data_dir=None):
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
 
-  emotions = ('admiration', 'amusement', 'anger', 'annoyance', 'approval',
-              'caring', 'confusion', 'curiosity', 'desire', 'disappointment',
-              'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear',
-              'gratitude', 'grief', 'joy', 'love', 'nervousness', 'neutral',
-              'optimism', 'pride', 'realization', 'relief', 'remorse',
-              'sadness', 'surprise')
+  if emotions is not None:  # Use all emotions.
+    emotions = ('admiration', 'amusement', 'anger', 'annoyance', 'approval',
+                'caring', 'confusion', 'curiosity', 'desire', 'disappointment',
+                'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear',
+                'gratitude', 'grief', 'joy', 'love', 'nervousness', 'neutral',
+                'optimism', 'pride', 'realization', 'relief', 'remorse',
+                'sadness', 'surprise')
 
   def _preprocess(d):
     tokens = tokenize(d['comment_text']).flat_values
