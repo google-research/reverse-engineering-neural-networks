@@ -36,7 +36,17 @@ setup(
     author_email='nirum@google.com',
     packages=find_packages(exclude=["examples"]),
     python_requires='>=3.7',
-    install_requires=['numpy >=1.12', 'jax', 'jaxlib', 'tqdm'],
+    install_requires=[
+        'numpy >=1.12',
+        'jax',
+        'jaxlib',
+        'msgpack',
+        'sklearn',
+        'tensorflow',
+        'tensorflow-text',
+        'tfds-nightly',
+        'tqdm',
+    ],
     url='https://github.com/google-research/reverse-engineering-neural-networks',
     license='Apache-2.0',
 )
