@@ -19,7 +19,7 @@ import jax.numpy as jnp
 from jax.tree_util import register_pytree_node
 
 __all__ = [
-    'LinearRNN', 'RNNCell', 'StackedRNN', 'GRU', 'LSTM', 'VanillaRNN', 'UGRNN',
+    'LinearRNN', 'RNNCell', 'StackedCell', 'GRU', 'LSTM', 'VanillaRNN', 'UGRNN',
     'embedding'
 ]
 
@@ -99,7 +99,7 @@ class RNNCell:
       return jnp.repeat(initial_state, batch_size, axis=0)
 
 
-class StackedRNN(RNNCell):
+class StackedCell(RNNCell):
   """Stacks multiple RNN cells together.
 
   A stacked RNN cell is specified by a list of RNN cells and

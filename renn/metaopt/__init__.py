@@ -13,6 +13,7 @@
 # limitations under the License.
 """Meta-optimization framework."""
 # pylint: disable=wildcard-import
+from . import common
 from . import losses
 from . import models
 from . import tasks
