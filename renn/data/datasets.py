@@ -4,16 +4,18 @@ import tensorflow_datasets as tfds
 import tensorflow_text as text
 import tensorflow as tf
 
+import os
+
 from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
+from renn.data import data_utils
 
 __all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'mnist']
 
 
 def pipeline(dset, preprocess_fun=utils.identity, filter_fn=None, bufsize=1024):
   """Common (standard) dataset pipeline.
-  Preprocesses the data, filters it (if a filter function is specified),
-  caches it, and shuffles it.
+  Preprocesses the data, filters it (if a filter function is specified), caches it, and shuffles it.
 
   Note: Does not batch"""
 
@@ -55,15 +57,32 @@ def padded_batch(dset, batch_size, sequence_length, label_shape=()):
   return dset
 
 
-def load_text_classification(name,
-                             split,
-                             preprocess_fun,
-                             filter_fn=None,
-                             data_dir=None):
-  """Helper that loads a text classification dataset."""
+def load_tfds(name, split, preprocess_fun, filter_fn=None, data_dir=None):
+  """Helper that loads a text classification dataset
+  from tensorflow_datasets"""
 
   # Load raw dataset.
   dset = tfds.load(name, split=split, data_dir=data_dir)
+
+  # Apply common dataset pipeline.
+  dset = pipeline(dset, preprocess_fun=preprocess_fun, filter_fn=filter_fn)
+
+  return dset
+
+
+def load_csv(name, split, preprocess_fun, filter_fn=None, data_dir=None):
+  """Helper that loads a text classification dataset
+  from a csv file"""
+  # Load raw dataset.
+
+  output_types = {'text': tf.string, 'label': tf.int64}
+  output_shapes = {'text': (), 'label': ()}
+
+  filename = os.path.join(data_dir, f'{split}.csv')
+  row_parser = data_utils.PARSERS[name]
+  dset_iterator = lambda: data_utils.readfile(filename, row_parser)
+  dset = tf.data.Dataset.from_generator(dset_iterator, output_types,
+                                        output_shapes)
 
   # Apply common dataset pipeline.
   dset = pipeline(dset, preprocess_fun=preprocess_fun, filter_fn=filter_fn)
@@ -92,11 +111,11 @@ def ag_news(split,
     return transform_fn(preprocessed)
 
   # Load dataset.
-  dset = load_text_classification('ag_news_subset',
-                                  split,
-                                  _preprocess,
-                                  filter_fn,
-                                  data_dir=data_dir)
+  dset = load_tfds('ag_news_subset',
+                   split,
+                   _preprocess,
+                   filter_fn,
+                   data_dir=data_dir)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
@@ -135,11 +154,11 @@ def goemotions(split,
     return transform(preprocessed)
 
   # Load dataset.
-  dset = load_text_classification('goemotions',
-                                  split,
-                                  _preprocess,
-                                  filter_fn,
-                                  data_dir=data_dir)
+  dset = load_tfds('goemotions',
+                   split,
+                   _preprocess,
+                   filter_fn,
+                   data_dir=data_dir)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset,
@@ -171,11 +190,135 @@ def imdb(split,
     return transform(preprocessed)
 
   # Load dataset.
-  dset = load_text_classification('imdb_reviews',
-                                  split,
-                                  _preprocess,
-                                  filter_fn,
-                                  data_dir=data_dir)
+  dset = load_tfds('imdb_reviews',
+                   split,
+                   _preprocess,
+                   filter_fn,
+                   data_dir=data_dir)
+
+  # Pad remaining examples to the sequence length.
+  dset = padded_batch(dset, batch_size, sequence_length)
+
+  return dset
+
+
+def yelp(split,
+         num_classes,
+         vocab_file,
+         sequence_length=1000,
+         batch_size=64,
+         transform=utils.identity,
+         filter_fn=None,
+         data_dir=None):
+  """Loads the yelp reviews dataset."""
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
+
+  if data_dir is None:
+    raise ValueError('Yelp dataset requires data_dir to be provided.')
+
+  def _preprocess(d):
+    """Applies tokenization, and
+    transforms the yelp labels according to the
+    specified number of classes"""
+
+    star_to_label = {
+        1: {
+            1: 0,
+            2: 0,
+            3: -1,
+            4: 1,
+            5: 1
+        },
+        2: {
+            1: 0,
+            2: 0,
+            3: -1,
+            4: 1,
+            5: 1
+        },
+        3: {
+            1: 0,
+            2: -1,
+            3: 1,
+            4: -1,
+            5: 2
+        },
+        5: {
+            1: 0,
+            2: 1,
+            3: 2,
+            4: 3,
+            5: 4
+        }
+    }
+
+    star_to_label = star_to_label[num_classes]
+    tokens = tokenize(d['text']).flat_values
+    preprocessed = {
+        'inputs': tokens,
+        'labels': star_to_label[d['label']],
+        'index': tf.size(tokens),
+    }
+
+    return transform(preprocessed)
+
+  filter_fn = lambda x: x['labels'] != -1
+
+  # Load dataset.
+  dset = load_csv('yelp', split, _preprocess, filter_fn, data_dir=data_dir)
+
+  # Pad remaining examples to the sequence length.
+  dset = padded_batch(dset, batch_size, sequence_length)
+
+  return dset
+
+
+def dbpedia(split,
+            num_classes,
+            vocab_file,
+            sequence_length=1000,
+            batch_size=64,
+            transform=utils.identity,
+            filter_fn=None,
+            data_dir=None):
+  """Loads the dpedia text classification dataset."""
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
+
+  if data_dir is None:
+    raise ValueError('DBPedia dataset requires data_dir to be provided.')
+
+  def _preprocess(d):
+    """Applies tokenization, and
+    transforms the dbpedia labels according to the
+    specified number of classes
+
+    For a given number of classes, the classes with
+    labels below that number are kept, and all other classes
+    are removed.
+
+    So, e.g., num_classes = 4, would keep classes 0,1,2,3"""
+
+    def relabel(label):
+      if label <= num_classes:
+        # in DBPedia csv file, labels are
+        # given as 1, 2, ...
+        return label - 1
+      else:
+        return tf.constant(-1, dtype=tf.int64)
+
+    tokens = tokenize(d['text']).flat_values
+    preprocessed = {
+        'inputs': tokens,
+        'labels': relabel(d['label']),
+        'index': tf.size(tokens),
+    }
+
+    return transform(preprocessed)
+
+  filter_fn = lambda x: x['labels'] != -1
+
+  # Load dataset.
+  dset = load_csv('dbpedia', split, _preprocess, filter_fn, data_dir=data_dir)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
@@ -206,11 +349,7 @@ def snli(split,
     })
 
   # Load dataset.
-  dset = load_text_classification('snli',
-                                  split,
-                                  _preprocess,
-                                  filter_fn,
-                                  data_dir=data_dir)
+  dset = load_tfds('snli', split, _preprocess, filter_fn, data_dir=data_dir)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
