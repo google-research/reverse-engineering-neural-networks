@@ -253,7 +253,7 @@ def yelp(split,
     }
 
     star_to_label = star_to_label[num_classes]
-    tokens = tokenize(d['text'].numpy()).flat_values
+    tokens = tokenize(d['text']).flat_values
     preprocessed = {
         'inputs': tokens,
         'labels': star_to_label[d['label']],
@@ -266,6 +266,59 @@ def yelp(split,
 
   # Load dataset.
   dset = load_csv('yelp', split, _preprocess, filter_fn, data_dir=data_dir)
+
+  # Pad remaining examples to the sequence length.
+  dset = padded_batch(dset, batch_size, sequence_length)
+
+  return dset
+
+
+def dbpedia(split,
+            num_classes,
+            vocab_file,
+            sequence_length=1000,
+            batch_size=64,
+            transform=utils.identity,
+            filter_fn=None,
+            data_dir=None):
+  """Loads the dpedia text classification dataset."""
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
+
+  if data_dir is None:
+    raise ValueError('DBPedia dataset requires data_dir to be provided.')
+
+  def _preprocess(d):
+    """Applies tokenization, and
+    transforms the dbpedia labels according to the
+    specified number of classes
+
+    For a given number of classes, the classes with
+    labels below that number are kept, and all other classes
+    are removed.
+
+    So, e.g., num_classes = 4, would keep classes 0,1,2,3"""
+
+    def relabel(label):
+      if label <= num_classes:
+        # in DBPedia csv file, labels are
+        # given as 1, 2, ...
+        return label - 1
+      else:
+        return tf.constant(-1, dtype=tf.int64)
+
+    tokens = tokenize(d['text']).flat_values
+    preprocessed = {
+        'inputs': tokens,
+        'labels': relabel(d['label']),
+        'index': tf.size(tokens),
+    }
+
+    return transform(preprocessed)
+
+  filter_fn = lambda x: x['labels'] != -1
+
+  # Load dataset.
+  dset = load_csv('dbpedia', split, _preprocess, filter_fn, data_dir=data_dir)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
