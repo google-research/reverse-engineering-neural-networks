@@ -10,7 +10,7 @@ from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
 from renn.data import data_utils
 
-__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'mnist']
+__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'mnist', 'yelp', 'dbpedia']
 
 
 def pipeline(dset, preprocess_fun=utils.identity, filter_fn=None, bufsize=1024):

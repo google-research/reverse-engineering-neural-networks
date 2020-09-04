@@ -5,19 +5,52 @@ import os
 
 import tensorflow_datasets as tfds
 import renn
+import tqdm
 
 parser = argparse.ArgumentParser(description='Generate vocab files.')
 parser.add_argument('dataset', type=str)
-parser.add_argument('--savedir', type=str, default='/tmp')
+parser.add_argument('--save_dir', type=str, default='/tmp')
+parser.add_argument('--data_dir', type=str, default='/tmp')
 parser.add_argument('--vocab_size', type=int, default=2**15)
 
-DATASETS = {
-    # dataset name, split, and dictionary key that contains text
-    'ag_news': ('ag_news_subset', 'train', 'description'),
-    'goemotions': ('goemotions', 'train', 'comment_text'),
-    'imdb': ('imdb_reviews', 'unsupervised', 'text'),
-    'snli': ('snli', 'train', 'premise'),
-}
+
+def load_dataset(name, data_dir=None):
+  """Loads dataset as a generator that yields text documents."""
+
+  if name == 'ag_news':
+    dset = tfds.load('ag_news_subset', 'train')
+    dset = extract(dset, 'description')
+    return dset.as_numpy_iterator()
+
+  elif name == 'goemotions':
+    dset = tfds.load('goemotions', 'train')
+    dset = extract(dset, 'comment_text')
+    return dset.as_numpy_iterator()
+
+  elif name == 'imdb':
+    dset = tfds.load('imdb_reviews', 'unsupervised')
+    dset = extract(dset, 'text')
+    return dset.as_numpy_iterator()
+
+  elif name == 'snli':
+    dset = tfds.load('snli', 'train')
+    dset = extract(dset, 'premise')
+    return dset.as_numpy_iterator()
+
+  elif name == 'yelp':
+    fname = os.path.join(data_dir, 'yelp/train.csv')
+    parser = renn.data.data_utils.PARSERS[name]
+    generator = renn.data.data_utils.readfile(fname, parser)
+    return map(lambda d: d['text'], generator)
+
+  elif name == 'dbpedia':
+    fname = os.path.join(data_dir, 'dbpedia/train.csv')
+    parser = renn.data.data_utils.PARSERS[name]
+    generator = renn.data.data_utils.readfile(fname, parser)
+    return map(lambda d: d['text'], generator)
+
+  else:
+    raise ValueError(f'Invalid dataset {name}.')
 
 
 def save_vocab(filename, vocab):
@@ -26,33 +59,22 @@ def save_vocab(filename, vocab):
       f.write(v + '\n')
 
 
-def build_vocab(name, split, key, vocab_size):
-  dset = tfds.load(name, split=split)
-
-  # Extract text.
-  dset = tfds.as_numpy(dset.map(lambda d: d[key]))
-
-  # Build vocabulary.
-  return renn.data.build_vocab(iter(dset),
-                               vocab_size,
-                               split_fun=lambda d: d.decode().lower().split())
+def extract(dset, key):
+  return dset.map(lambda d: d[key].decode())
 
 
 def main():
   args = parser.parse_args()
 
-  if args.dataset in DATASETS:
-    dset, split, key = DATASETS[args.dataset]
-
-  else:
-    raise ValueError(f'Invalid dataset {args.dataset}')
-
   # Build vocab.
   print(f'Building vocab for {args.dataset}')
-  vocab = build_vocab(dset, split, key, args.vocab_size)
+  iterator = load_dataset(args.dataset, os.path.expanduser(args.data_dir))
+  vocab = renn.data.build_vocab(tqdm.tqdm(iterator),
+                                args.vocab_size,
+                                split_fun=lambda d: d.lower().split())
 
   # Save to file.
-  filename = os.path.join(args.savedir, args.dataset + '.vocab')
+  filename = os.path.join(args.save_dir, args.dataset + '.vocab')
   print(f'Saving vocab to: {filename}')
   save_vocab(filename, vocab)
 
