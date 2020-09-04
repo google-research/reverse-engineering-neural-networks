@@ -10,7 +10,10 @@ from renn import utils
 from renn.data.tokenizers import load_tokenizer, SEP
 from renn.data import data_utils
 
-__all__ = ['ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'mnist', 'yelp', 'dbpedia']
+__all__ = [
+    'ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'mnist', 'yelp',
+    'dbpedia'
+]
 
 
 def pipeline(dset, preprocess_fun=utils.identity, filter_fn=None, bufsize=1024):
@@ -134,7 +137,7 @@ def goemotions(split,
   """Loads the goemotions dataset."""
   tokenize = tokenize_fun(load_tokenizer(vocab_file))
 
-  if emotions is not None:  # Use all emotions.
+  if emotions is None:  # Use all emotions.
     emotions = ('admiration', 'amusement', 'anger', 'annoyance', 'approval',
                 'caring', 'confusion', 'curiosity', 'desire', 'disappointment',
                 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear',
