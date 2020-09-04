@@ -33,4 +33,8 @@ def column_parser(text_column):
   return f
 
 
-PARSERS = {'yelp': column_parser(1), 'dbpedia': column_parser(2)}
+PARSERS = {
+    'yelp': column_parser(1),
+    'dbpedia': column_parser(2),
+    'amazon': column_parser(2)
+}
