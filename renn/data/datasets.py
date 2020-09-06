@@ -219,47 +219,30 @@ def yelp(split,
   if data_dir is None:
     raise ValueError('Yelp dataset requires data_dir to be provided.')
 
+  t = tf.int64
+  ts = {i: tf.constant(i, dtype=t) for i in range(-1, 6)}
+  tens_eq = lambda x, y: tf.cast(tf.equal(x, y), t)
+  tens_gg = lambda x, y: tf.cast(tf.greater(x, y), t)
+  tens_ll = lambda x, y: tf.cast(tf.less(x, y), t)
+
+  if num_classes in [1, 2]:
+    label_conversion = lambda x: tens_gg(x, 3) + tens_eq(x, 3) * ts[-1]
+  elif num_classes == 3:
+    label_conversion = lambda x: tens_eq(x, 1) * ts[0] + tens_eq(x, 2) * ts[
+        -1] + tens_eq(x, 3) * ts[1] + tens_eq(x, 4) * ts[-1] + tens_eq(x, 5
+                                                                      ) * ts[2]
+  elif num_classes == 5:
+    label_conversion = lambda x: tf.subtract(x, 1)
+
   def _preprocess(d):
     """Applies tokenization, and
     transforms the yelp labels according to the
     specified number of classes"""
 
-    star_to_label = {
-        1: {
-            1: 0,
-            2: 0,
-            3: -1,
-            4: 1,
-            5: 1
-        },
-        2: {
-            1: 0,
-            2: 0,
-            3: -1,
-            4: 1,
-            5: 1
-        },
-        3: {
-            1: 0,
-            2: -1,
-            3: 1,
-            4: -1,
-            5: 2
-        },
-        5: {
-            1: 0,
-            2: 1,
-            3: 2,
-            4: 3,
-            5: 4
-        }
-    }
-
-    star_to_label = star_to_label[num_classes]
     tokens = tokenize(d['text']).flat_values
     preprocessed = {
         'inputs': tokens,
-        'labels': star_to_label[d['label']],
+        'labels': label_conversion(d['label']),
         'index': tf.size(tokens),
     }
 
