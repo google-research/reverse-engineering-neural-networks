@@ -12,7 +12,7 @@ from renn.data import data_utils
 
 __all__ = [
     'ag_news', 'goemotions', 'imdb', 'snli', 'tokenize_fun', 'mnist', 'yelp',
-    'dbpedia'
+    'dbpedia', 'amazon'
 ]
 
 
@@ -219,20 +219,7 @@ def yelp(split,
   if data_dir is None:
     raise ValueError('Yelp dataset requires data_dir to be provided.')
 
-  t = tf.int64
-  ts = {i: tf.constant(i, dtype=t) for i in range(-1, 6)}
-  tens_eq = lambda x, y: tf.cast(tf.equal(x, y), t)
-  tens_gg = lambda x, y: tf.cast(tf.greater(x, y), t)
-  tens_ll = lambda x, y: tf.cast(tf.less(x, y), t)
-
-  if num_classes in [1, 2]:
-    label_conversion = lambda x: tens_gg(x, 3) + tens_eq(x, 3) * ts[-1]
-  elif num_classes == 3:
-    label_conversion = lambda x: tens_eq(x, 1) * ts[0] + tens_eq(x, 2) * ts[
-        -1] + tens_eq(x, 3) * ts[1] + tens_eq(x, 4) * ts[-1] + tens_eq(x, 5
-                                                                      ) * ts[2]
-  elif num_classes == 5:
-    label_conversion = lambda x: tf.subtract(x, 1)
+  label_conversion = data_utils.sentiment_relabel(num_classes)
 
   def _preprocess(d):
     """Applies tokenization, and
@@ -252,6 +239,47 @@ def yelp(split,
 
   # Load dataset.
   dset = load_csv('yelp', split, _preprocess, filter_fn, data_dir=data_dir)
+
+  # Pad remaining examples to the sequence length.
+  dset = padded_batch(dset, batch_size, sequence_length)
+
+  return dset
+
+
+def amazon(split,
+           num_classes,
+           vocab_file,
+           sequence_length=1000,
+           batch_size=64,
+           transform=utils.identity,
+           filter_fn=None,
+           data_dir=None):
+  """Loads the yelp reviews dataset."""
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
+
+  if data_dir is None:
+    raise ValueError('Amazon dataset requires data_dir to be provided.')
+
+  label_conversion = data_utils.sentiment_relabel(num_classes)
+
+  def _preprocess(d):
+    """Applies tokenization, and
+    transforms the Amazon labels according to the
+    specified number of classes"""
+
+    tokens = tokenize(d['text']).flat_values
+    preprocessed = {
+        'inputs': tokens,
+        'labels': label_conversion(d['label']),
+        'index': tf.size(tokens),
+    }
+
+    return transform(preprocessed)
+
+  filter_fn = lambda x: x['labels'] != -1
+
+  # Load dataset.
+  dset = load_csv('amazon', split, _preprocess, filter_fn, data_dir=data_dir)
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
