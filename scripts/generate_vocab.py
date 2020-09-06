@@ -49,6 +49,12 @@ def load_dataset(name, data_dir=None):
     generator = renn.data.data_utils.readfile(fname, parser)
     return map(lambda d: d['text'], generator)
 
+  elif name == 'amazon':
+    fname = os.path.join(data_dir, 'amazon/train.csv')
+    parser = renn.data.data_utils.PARSERS[name]
+    generator = renn.data.data_utils.readfile(fname, parser)
+    return map(lambda d: d['text'], generator)
+
   else:
     raise ValueError(f'Invalid dataset {name}.')
 
