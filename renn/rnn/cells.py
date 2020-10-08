@@ -18,6 +18,8 @@ import jax
 import jax.numpy as jnp
 from jax.tree_util import register_pytree_node
 
+import numpy as np
+
 __all__ = [
     'LinearRNN', 'RNNCell', 'StackedCell', 'GRU', 'LSTM', 'VanillaRNN', 'UGRNN',
     'embedding'
@@ -148,7 +150,7 @@ class StackedCell(RNNCell):
     """Applies a single step of a Stacked RNN."""
 
     # Split the RNN state vector into the state vector for each cell.
-    states = jnp.split(state, jnp.cumsum(jnp.array(self.units))[:-1])
+    states = jnp.split(state, np.cumsum(np.array(self.units))[:-1])
     next_states = []
 
     # Iteratively apply each RNN layer.
