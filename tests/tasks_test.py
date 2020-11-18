@@ -14,6 +14,8 @@
 """Tests tasks."""
 
 import jax
+from jax.experimental import stax
+
 import numpy as np
 
 import pytest
@@ -43,7 +45,7 @@ def test_quadratic(dim, lambda_min, lambda_max, seed):
     (2, -3, 0, 10),
     (20, 1, 2, 10),
 ])
-def test_quadratic_batch(dim, lambda_min, lambda_max, num_seeds):
+def test_batch_loss(dim, lambda_min, lambda_max, num_seeds):
   """Tests batching of multiple problems."""
 
   # Problem builder.
@@ -70,54 +72,38 @@ def test_quadratic_batch(dim, lambda_min, lambda_max, num_seeds):
   assert len(np.unique(losses)) == num_seeds
 
 
-class LogisticRegressionTest:
+def test_logistic_regression_loss():
+  """Smoke test for the logistic loss function."""
 
-  @pytest.mark.parametrize("dim,num_datapoints,seed,step", [
-      (2, 10, 9, 14),
-      (10, 50, 1, 3),
-      (20, 50, 0, 0),
-      (50, 100, 11, 5),
-      (100, 50, 32, 13),
-  ])
-  def test_loss(self, dim, num_datapoints, seed, step):
-    """Smoke test for the quadratic loss function."""
+  # Random data.
+  features = np.random.randn(1024, 2)
+  targets = np.random.randint(2, size=1024)
 
-    # Build problem.
-    l2_reg = 1e-3
-    problem_fun = tasks.logreg(dim, num_datapoints, l2_reg)
-    key = jax.random.PRNGKey(seed)
-    params, loss_fun = problem_fun(key)
+  # Build problem.
+  l2_pen = 1e-3
+  model = stax.Dense(1)
+  problem_fun = tasks.logistic_regression(model, features, targets, l2_pen)
+  key = jax.random.PRNGKey(1234)
+  params, loss_fun = problem_fun(key)
 
-    loss = loss_fun(params, step)  # Compute loss.
-    assert loss >= 0.0  # Loss must be non-negative.
+  loss = loss_fun(params, 0)  # Compute loss.
+  assert loss >= 0.0  # Loss must be non-negative.
 
-  @pytest.mark.parametrize("dim,num_datapoints,num_seeds", [
-      (2, 5, 10),
-      (20, 50, 10),
-  ])
-  def test_batch(self, dim, num_datapoints, num_seeds):
-    """Tests batching of multiple problems."""
 
-    # Problem builder.
-    l2_reg = 1e-5
-    problem_fun = tasks.logreg(dim, num_datapoints, l2_reg)
+def test_softmax_regression_loss():
+  """Smoke test for the softmax loss function."""
 
-    # Sample initial parameters.
-    key = jax.random.PRNGKey(0)
-    key, prng = jax.random.split(key)
-    params, _ = problem_fun(prng)
+  # Random data.
+  num_classes = 10
+  features = np.random.randn(1024, 2)
+  targets = np.random.randint(num_classes, size=1024)
 
-    # Loss to batch over random seeds.
-    def batch_loss(params, prng):
-      _, loss_fun = problem_fun(prng)
-      step = 0  # Loss doesn't depend on the step, so any value here works.
-      return loss_fun(params, step)
+  # Build problem.
+  l2_pen = 1e-3
+  model = stax.Dense(1)
+  problem_fun = tasks.softmax_regression(model, features, targets, l2_pen)
+  key = jax.random.PRNGKey(1234)
+  params, loss_fun = problem_fun(key)
 
-    batch_loss = jax.vmap(batch_loss, in_axes=(None, 0))
-
-    # Apply the batched outer loss function.
-    prngs = jax.random.split(key, num_seeds)
-    losses = batch_loss(params, prngs)
-
-    # Ensure that all losses are unique.
-    assert len(np.unique(losses)) == num_seeds
+  loss = loss_fun(params, 0)  # Compute loss.
+  assert loss >= 0.0  # Loss must be non-negative.

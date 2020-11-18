@@ -26,6 +26,8 @@ from .task_lib import regression
 __all__ = [
     'quad',
     'two_moons',
+    'logistic_regression',
+    'softmax_regression',
 ]
 
 # Each task below is a function that takes problem parameters as
@@ -66,6 +68,30 @@ def logistic_regression(model, features, targets, l2_pen=0.):
       del step
       logits = jnp.squeeze(predict_fun(x, features))
       data_loss = jnp.mean(jnp.log1p(jnp.exp(logits)) - targets * logits)
+      reg_loss = l2_pen * utils.norm(x)
+      return data_loss + reg_loss
+
+    return x0, loss_fun
+
+  return problem_fun
+
+
+def softmax_regression(model, features, targets, num_classes, l2_pen=0.):
+  """Helper function for softmax regression."""
+
+  m, n = features.shape
+
+  def problem_fun(prng_key):
+    keys = jax.random.split(prng_key)
+    input_shape = (-1, n)
+    init_fun, predict_fun = model
+    output_shape, x0 = init_fun(keys[0], input_shape)
+
+    def loss_fun(x, step):
+      del step
+      logits = jnp.squeeze(predict_fun(x, features))
+      onehot_targets = utils.one_hot(targets, num_classes)
+      data_loss = -jnp.mean(jnp.sum(logits * onehot_targets, axis=1))
       reg_loss = l2_pen * utils.norm(x)
       return data_loss + reg_loss
 
