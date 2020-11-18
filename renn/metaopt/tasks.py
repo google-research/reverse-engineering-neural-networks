@@ -15,6 +15,7 @@
 
 import jax
 import jax.numpy as jnp
+from jax.scipy.special import logsumexp
 
 from renn import utils
 from sklearn.datasets import make_moons
@@ -87,7 +88,8 @@ def softmax_regression(model, features, targets, num_classes, l2_pen=0.):
 
     def loss_fun(x, step):
       del step
-      logits = jnp.squeeze(predict_fun(x, features))
+      logits = predict_fun(x, features)
+      logits -= logsumexp(logits, axis=1, keepdims=True)
       onehot_targets = utils.one_hot(targets, num_classes)
       data_loss = -jnp.mean(jnp.sum(logits * onehot_targets, axis=1))
       reg_loss = l2_pen * utils.norm(x)
