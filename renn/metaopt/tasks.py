@@ -19,9 +19,7 @@ import jax.numpy as jnp
 from renn import utils
 from sklearn.datasets import make_moons
 
-from .task_lib import classification
 from .task_lib import quadratic
-from .task_lib import regression
 
 __all__ = [
     'quad',
