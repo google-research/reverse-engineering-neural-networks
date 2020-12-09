@@ -6,11 +6,25 @@
 Reverse Engineering Neural Networks (RENN)
 ===============================================================
 
+What is RENN?
+-------------
+
+Tutorials
+---------
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 0
+   :caption: Tutorials:
 
+  notebooks/quickstart
+  notebooks/RNN_sentiment_example
 
+API Documentation
+-----------------
+.. toctree::
+  :maxdepth: 3
+  :caption: API Documentation
+  api
 
 Indices and tables
 ==================
