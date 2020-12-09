@@ -15,6 +15,7 @@
 
 import jax
 import jax.numpy as jnp
+from jax.scipy.special import logsumexp
 
 from renn import utils
 from sklearn.datasets import make_moons
