@@ -18,8 +18,6 @@ import jax.numpy as jnp
 
 import numpy as np
 
-import pytest
-
 from renn.metaopt import models
 from renn.rnn import cells
 
