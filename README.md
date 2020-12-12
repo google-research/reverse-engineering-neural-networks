@@ -8,7 +8,7 @@ Currently, the package focuses on understanding recurrent neural networks (RNNs)
 
 All of `renn` uses the [JAX](https://github.com/google/jax/) machine learning library for building neural networks and for automatic differentiation. We assume some basic familiarity with JAX in the documentation.
 
-See the documentation for more information.
+*See the [documentation](https://reverse-engineering-neural-networks.readthedocs.io/en/latest/) for more information.*
 
 Authors:
 - Niru Maheswaranathan (nirum@google.com)
