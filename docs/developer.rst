@@ -7,11 +7,9 @@ Formatting checks are doing via `yapf <https://github.com/google/yapf>`_, enable
 Building the docs
 -----------------
 
-To rebuild the documentation, first install the dependencies:
+To rebuild the documentation, first install the dependencies: ``pip install -r docs/requirements.txt``
 
-``pip install -r docs/requirements.txt``
-
-The commands to build the docs are contained in the `Makefile`.
+First, generate the source API documentation by running ``sphinx-apidoc -f -o docs/source renn`` from the root directory. Then, the commands to build the docs are contained in the `docs/Makefile` file.
 
 How to contribute
 -----------------
