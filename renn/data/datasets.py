@@ -60,6 +60,20 @@ def padded_batch(dset, batch_size, sequence_length, label_shape=()):
   return dset
 
 
+def filter_pad_batch(dset, batch_size, field_lengths, padded_shapes):
+  """Pads examples to a fixed length and collects them into batches.
+  Unlike padded_batch(), no assumption is made as to the fields in each
+  example"""
+
+  # Filter out examples longer than the desired lengths
+  for field, length in field_lengths.items():
+    dset = dset.filter(lambda d: d[field] <= length)
+
+  dset = dset.padded_batch(batch_size, padded_shapes)
+
+  return dset
+
+
 def load_tfds(name, split, preprocess_fun, filter_fn=None, data_dir=None):
   """Helper that loads a text classification dataset
   from tensorflow_datasets"""
@@ -336,6 +350,50 @@ def dbpedia(split,
 
   # Pad remaining examples to the sequence length.
   dset = padded_batch(dset, batch_size, sequence_length)
+
+  return dset
+
+
+def snli_sep(split,
+             vocab_file,
+             hypothesis_length=40,
+             premise_length=40,
+             batch_size=64,
+             transform=utils.identity,
+             filter_fn=None,
+             data_dir=None):
+  """Loads the SNLI dataset, with hypothesis and premise
+     separated as two different fields """
+  tokenize = tokenize_fun(load_tokenizer(vocab_file))
+
+  def _preprocess(d):
+    """Applies tokenization."""
+    hypothesis = tokenize(d['hypothesis']).flat_values
+    premise = tokenize(d['premise']).flat_values
+    return transform({
+        'hypothesis': hypothesis,
+        'premise': premise,
+        'hypothesis_index': tf.size(hypothesis),
+        'premise_index': tf.size(premise),
+        'labels': d['label'],
+    })
+
+  # Load dataset.
+  dset = load_tfds('snli', split, _preprocess, filter_fn, data_dir=data_dir)
+
+  # Pad remaining examples to the sequence length.
+  field_lengths = {
+      'hypothesis_index': hypothesis_length,
+      'premise_index': premise_length
+  }
+  padded_shapes = {
+      'hypothesis': (hypothesis_length,),
+      'premise': (premise_length,),
+      'premise_index': (),
+      'hypothesis_index': (),
+      'labels': ()
+  }
+  dset = filter_pad_batch(dset, batch_size, field_lengths, padded_shapes)
 
   return dset
 
