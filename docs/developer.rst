@@ -1,12 +1,11 @@
 Tests and code format
 ---------------------
-Tests are run using `pytest <https://docs.pytest.org/en/stable/>`_. From the root directory, simply run: ``pytest`` to run the tests.
+Tests are run using `pytest <https://docs.pytest.org/en/stable/>`_. From the project root directory, simply run: ``pytest`` to run the tests. You will need to have pytest installed (try `pip install pytest` to install it).
 
-Formatting checks are doing via `yapf <https://github.com/google/yapf>`_, enabled automatically by `pre-commit <https://pre-commit.com/>`_. To get this setup, run ``pre-commit install``.
+Formatting checks are doing via `yapf <https://github.com/google/yapf>`_, enabled automatically by `pre-commit <https://pre-commit.com/>`_. To get this setup, first make sure pre-commit is installed (`pip install pre-commit`) and then run ``pre-commit install`` from the project root directory.
 
 Building the docs
 -----------------
-
 To rebuild the documentation, first install the dependencies: ``pip install -r docs/requirements.txt``
 
 First, generate the source API documentation by running ``sphinx-apidoc -f -o docs/source renn`` from the root directory. Then, the commands to build the docs are contained in the `docs/Makefile` file.
