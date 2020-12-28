@@ -1,5 +1,5 @@
-v0.1.0 (Unreleased)
--------------------
+v0.1.0
+------
 * **Added**
 
   * Initial publicized release.
