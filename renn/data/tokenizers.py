@@ -15,6 +15,43 @@ JOINER = '##'
 UNK = '<unk>'
 CLS = '<cls>'
 SEP = '<sep>'
+EOS = '<eos>'
+BOS = '<bos>'
+
+
+def generator(dataset, split, language, num_examples, lower=True):
+  it = iter(dataset[split])
+  if lower:
+    for count in range(num_examples):
+      yield next(it)[language].numpy().decode('UTF-8').lower()
+  else:
+    for count in range(num_examples):
+      yield next(it)[language].numpy().decode('UTF-8')
+
+
+def build_vocab_tr(corpus_generator, vocab_size, split_fun=str.split):
+  """Builds a vocab file from a text generator for translation.
+  Unlike buld_vocab() below, these vocabularies will have 3
+  reserved tokens:
+    <unk> - unknown
+    <bos> - beginning of sentence
+    <eos> - end of sentence
+  This also does not include a joiner token"""
+
+  # Split documents into words.
+  words = itertools.chain(*map(split_fun, corpus_generator))
+
+  # Count words in the corpus.
+  word_counts = Counter(words)
+
+  # Find the most common words
+  most_common_words = sorted(word_counts, key=word_counts.get,
+                             reverse=True)[:vocab_size]
+
+  reserved_tokens = [UNK, EOS, BOS]
+  vocab = reserved_tokens + list(most_common_words)
+
+  return vocab
 
 
 def build_vocab(corpus_generator, vocab_size, split_fun=str.split):
