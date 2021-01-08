@@ -19,7 +19,20 @@ EOS = '<eos>'
 BOS = '<bos>'
 
 
-def generator(dataset, split, language, num_examples, lower=True):
+def text_generator(dataset, split, language, num_examples, lower=True):
+  """Given a dataset (formatted for TFDS paracrawl translation dataset,
+  returns a generator which yields single-language examples from that
+  dataset, one at a time as strings
+
+  Arguments:
+    dataset - TFDS dataset
+    split - e.g., 'train', 'test'.  dataset[split] should yield an iterable
+    language - which language to generate text from.
+               dataset[split] items should have the language as a key
+    num_examples - desired length of the generator
+    lower - bool, whether to lowercase each sentence
+  """
+
   it = iter(dataset[split])
   if lower:
     for count in range(num_examples):
