@@ -21,7 +21,8 @@ copyright = '2020 Google LLC'
 author = 'Niru Maheswaranathan, Vinay Ramasesh, Kyle Aitken'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.13'
+release = '0.1.0'
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
