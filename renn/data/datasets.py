@@ -93,6 +93,67 @@ def load_csv(name, split, preprocess_fun, filter_fn=None, data_dir=None):
   return dset
 
 
+def paracrawl(language_pair,
+              vocab_files,
+              sequence_length,
+              batch_size=64,
+              transform_fn=utils.identity,
+              filter_fn=None,
+              data_dir=None):
+  """Loads any of the paracrawl datasets of parallel corpora
+  for translation from TensorFlow Datasets
+  (see https://www.tensorflow.org/datasets/catalog/para_crawl)
+
+  Arguments:
+    language_pair - str, e.g. 'ende', specifying both languages
+    vocab_files - List[str], a list of two files containing the vocabulary
+                             for each of the languages in language_pair
+  """
+
+  PARACRAWL_LANGUAGE_PAIRS = [
+      'enbg', 'encs', 'enda', 'ende', 'enel', 'enes', 'enet', 'enfi', 'enfr',
+      'enga', 'enhr', 'enhu', 'enit', 'enlt', 'enlv', 'enmt', 'ennl', 'enpl',
+      'enpt', 'enro', 'ensk', 'ensl', 'ensv'
+  ]
+
+  if language_pair not in PARACRAWL_LANGUAGE_PAIRS:
+    raise ValueError(f'language_pair must be one of {PARACRAWL_LANGUAGE_PAIRS}')
+  languages = [language_pair[:2], language_pair[2:]]
+
+  tokenizer_list = [tokenize_fun(load_tokenizer(f)) for f in vocab_files]
+  tokenizers = dict(zip(languages, tokenizer_list))
+
+  def _preprocess(d):
+    tokens = {l: tokenizers[l](d[l]).flat_values for l in languages}
+    for l in languages:
+      tokens.update({f'{l}_index': tf.size(tokens[l])})
+      tokens.update({f'{l}_orig': d[l]})
+    return transform_fn(tokens)
+
+  dataset = tfds.load(
+      f'para_crawl/{language_pair}',
+      split='train',  # para_crawl only has a train split
+      data_dir=data_dir)
+
+  dset = pipeline(dataset, preprocess_fun=_preprocess, filter_fn=filter_fn)
+
+  # Filter out examples longer than sequence length.
+  for l in languages:
+    dset = dset.filter(lambda d: d[f'{l}_index'] <= sequence_length)
+
+  # We assume the dataset contains inputs, labels, and an index.
+  padded_shapes = {}
+  for l in languages:
+    padded_shapes[f'{l}_index'] = ()
+    padded_shapes[f'{l}_orig'] = ()
+    padded_shapes[l] = (sequence_length,)
+
+  # Pad remaining examples to the sequence length.
+  dset = dset.padded_batch(batch_size, padded_shapes)
+
+  return dset, tokenizers
+
+
 def ag_news(split,
             vocab_file,
             sequence_length=100,
