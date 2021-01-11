@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """RENN core."""
+
 # pylint: disable=wildcard-import
 from . import data
 from .rnn.cells import *
