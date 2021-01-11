@@ -100,7 +100,7 @@ def test_softmax_regression_loss():
 
   # Build problem.
   l2_pen = 1e-3
-  model = stax.Dense(1)
+  model = stax.serial(stax.Dense(1), stax.LogSoftmax)
   problem_fun = tasks.softmax_regression(model, features, targets, l2_pen)
   key = jax.random.PRNGKey(1234)
   params, loss_fun = problem_fun(key)
