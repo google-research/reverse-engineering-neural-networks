@@ -17,7 +17,7 @@ import os
 import pytest
 import tempfile
 from renn.data import datasets
-from renn.data.tokenizers import load_tokenizer
+from renn.data.tokenizers import load_tokenizer, _punctuation_separator
 
 
 @pytest.fixture
@@ -40,3 +40,37 @@ def test_tokenizer_fun(vocab):
   actual = list(tokenize("this is a test.").flat_values.numpy())
   expected = [5, 6, 2, 6, 3, 4, 7]
   assert actual == expected
+
+
+@pytest.fixture
+def sentences():
+  """Test sentences for punctuation separation"""
+
+  with_punctuation = [
+      'Hello, how are you?', 'Pictures of Quebec : roofs of Quebec',
+      'In a not-so-shocking survey, they discovered.',
+      'linens, hair dryer, shower cabin, washing machine per arrangement',
+      'Los Feliz (Greater L.A.), which nowadays belongs to actress.',
+      'word1.word2', 'word1,word2', 'word1:word2', 'word1;word2', 'word1?word2',
+      'word1!word2', 'word1. word2', 'word1, word2', 'word1: word2',
+      'word1; word2', 'word1? word2', 'word1! word2', 'word.', 'word,', 'word:',
+      'word;', 'word?', 'word!'
+  ]
+
+  processed_ideal = [
+      'Hello , how are you ?', 'Pictures of Quebec : roofs of Quebec',
+      'In a not-so-shocking survey , they discovered .',
+      'linens , hair dryer , shower cabin , washing machine per arrangement',
+      'Los Feliz (Greater L.A.) , which nowadays belongs to actress .',
+      'word1.word2', 'word1,word2', 'word1:word2', 'word1;word2', 'word1?word2',
+      'word1!word2', 'word1 . word2', 'word1 , word2', 'word1 : word2',
+      'word1 ; word2', 'word1 ? word2', 'word1 ! word2', 'word .', 'word ,',
+      'word :', 'word ;', 'word ?', 'word !'
+  ]
+
+  return (with_punctuation, processed_ideal)
+
+
+def test_punctuation_separator(sentences):
+  for sentence, processed in zip(with_punctuation, processed_ideal):
+    assert _punctuation_separator(sentence) == processed_ideal

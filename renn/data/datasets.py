@@ -3,11 +3,12 @@
 import tensorflow_datasets as tfds
 import tensorflow_text as text
 import tensorflow as tf
+tf.compat.v1.enable_eager_execution()
 
 import os
 
 from renn import utils
-from renn.data.tokenizers import load_tokenizer, SEP
+from renn.data.tokenizers import load_tokenizer, SEP, _punctuation_separator, _tensor_punctuation_separator
 from renn.data import data_utils
 
 __all__ = [
@@ -39,6 +40,13 @@ def tokenize_fun(tokenizer):
   """Standard text processing function."""
   wsp = text.WhitespaceTokenizer()
   return utils.compose(tokenizer.tokenize, wsp.tokenize, text.case_fold_utf8)
+
+
+def tokenize_w_punctuation(tokenizer):
+  """Text processing function which splits off punctuation."""
+  wsp = text.WhitespaceTokenizer()
+  return utils.compose(tokenizer.tokenize, wsp.tokenize,
+                       _tensor_punctuation_separator, text.case_fold_utf8)
 
 
 def padded_batch(dset, batch_size, sequence_length, label_shape=()):
@@ -120,11 +128,13 @@ def paracrawl(language_pair,
     raise ValueError(f'language_pair must be one of {PARACRAWL_LANGUAGE_PAIRS}')
   languages = [language_pair[:2], language_pair[2:]]
 
-  tokenizer_list = [tokenize_fun(load_tokenizer(f)) for f in vocab_files]
-  tokenizers = dict(zip(languages, tokenizer_list))
+  tokenizer_list = [
+      tokenize_w_punctuation(load_tokenizer(f)) for f in vocab_files
+  ]
+  tokenizer_dict = dict(zip(languages, tokenizer_list))
 
   def _preprocess(d):
-    tokens = {l: tokenizers[l](d[l]).flat_values for l in languages}
+    tokens = {l: tokenizer_dict[l](d[l]).flat_values for l in languages}
     for l in languages:
       tokens.update({f'{l}_index': tf.size(tokens[l])})
       tokens.update({f'{l}_orig': d[l]})
@@ -151,7 +161,7 @@ def paracrawl(language_pair,
   # Pad remaining examples to the sequence length.
   dset = dset.padded_batch(batch_size, padded_shapes)
 
-  return dset, tokenizers
+  return dset, tokenizer_dict
 
 
 def ag_news(split,
