@@ -4,6 +4,7 @@ from collections import Counter
 import itertools
 
 from renn.data import wordpiece_tokenizer_learner_lib as vocab_learner
+from renn.utils import identity
 
 import tensorflow_text as text
 import tensorflow as tf
@@ -75,7 +76,7 @@ def text_generator(dataset: dict,
                    split: str,
                    language: str,
                    num_examples: int,
-                   transform_fn: Optional[Callable[[str],str]]=None):
+                   transform_fn: Callable[[str],str]=identity):
   """Builds a generator from a TF dataset.
 
   Given a dataset, returns a generator which yields single-language examples
@@ -88,10 +89,6 @@ def text_generator(dataset: dict,
     transform_fn: string transformation, defaults to identity fn.
     num_examples: desired length of the generator.
   """
-
-  # transform_fn defaults to identity
-  if transform_fn is None:
-    transform_fn = lambda x: x
 
   it = iter(dataset[split])
   for count in range(num_examples):
