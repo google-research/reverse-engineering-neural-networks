@@ -83,6 +83,41 @@ def compose(*funcs):
   return wrapper
 
 
+def build_mask(max_length: int):
+  """Builds a function that generates a binary mask.
+
+  For example, `f = build_mask(5)` returns a function that generates masks of
+  total length 5. Calling this function with an array of integers, e.g.
+  f(jnp.array([2, 3])), will return a binary (mask) array:
+    [[1., 1., 0., 0., 0.],
+     [1., 1., 1., 0., 0.]]
+
+  This is useful for generating binary arrays for masking out elements of a
+  padded batch, such as computing a loss over a batch of padded sequences.
+
+  Args:
+    max_length: int, The total length of the mask/sequence.
+
+  Returns:
+    mask_fun: function, Takes an array of indices (lengths) and returns
+      a binary mask where
+  """
+
+  def mask_fun(index: jnp.array) -> jnp.array:
+    """Builds a binary mask."""
+    return jnp.where(
+        jnp.arange(max_length) < index, jnp.ones(max_length),
+        jnp.zeros(max_length))
+
+  return jax.vmap(mask_fun)
+
+
+def select(sequences, indices):
+  """Selects a particular timestep from a batch of sequences."""
+  last_index = jnp.array(indices)[:, jnp.newaxis, jnp.newaxis]
+  return jnp.squeeze(jnp.take_along_axis(sequences, last_index, axis=1))
+
+
 def optimize(loss_fun, x0, optimizer, steps, stop_tol=-np.inf):
   """Run an optimizer on a given loss function.
 

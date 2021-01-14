@@ -140,3 +140,23 @@ def test_batch_mean():
   data = jnp.array([0, 1, 2])
   result = square_fun(data)
   assert result == jnp.mean(data**2)
+
+def test_build_mask():
+  """Tests the build_mask function."""
+
+  max_length = 5
+  test_function = utils.build_mask(max_length)
+  result = test_function(jnp.array([0,1,2,3,4,5,6,7,8,9,10]))
+  ideal_result = jnp.array([[0., 0., 0., 0., 0.],
+                            [1., 0., 0., 0., 0.],
+                            [1., 1., 0., 0., 0.],
+                            [1., 1., 1., 0., 0.],
+                            [1., 1., 1., 1., 0.],
+                            [1., 1., 1., 1., 1.],
+                            [1., 1., 1., 1., 1.],
+                            [1., 1., 1., 1., 1.],
+                            [1., 1., 1., 1., 1.],
+                            [1., 1., 1., 1., 1.],
+                            [1., 1., 1., 1., 1.]])
+  assert np.allclose(result, ideal_result)
+
