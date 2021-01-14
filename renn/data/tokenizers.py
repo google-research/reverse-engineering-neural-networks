@@ -9,6 +9,8 @@ import tensorflow_text as text
 import tensorflow as tf
 import tensorflow.strings as strings
 
+from typing import Optional, Callable
+
 import re
 
 __all__ = ['build_vocab', 'load_tokenizer']
@@ -21,22 +23,8 @@ SEP = '<sep>'
 EOS = '<eos>'
 BOS = '<bos>'
 
-
-def _get_transform_fn(lower: bool, separate_punctuation: bool):
-  """Helper function for text_generator"""
-
-  if not lower and not separate_punctuation:
-    return lambda x: x
-  elif lower and not separate_punctuation:
-    return lambda x: x.lower()
-  elif not lower and separate_punctuation:
-    return lambda x: _punctuation_separator(x)
-  elif lower and separate_punctuation:
-    return lambda x: _punctuation_separator(x.lower())
-
-
-def _punctuation_separator(s: str) -> str:
-  """Separates punctuation at the end of word and end of line"""
+def punctuation_separator(s: str) -> str:
+  """Separates punctuation at the end of word and end of line."""
   punctuation_chars = ['.', ',', ':', ';', '?', '!']
   special_chars = ['.', '?']  # regex chars
   s_ = s
@@ -54,11 +42,12 @@ def _punctuation_separator(s: str) -> str:
   return s_
 
 
-def _tensor_punctuation_separator(x: tf.Tensor) -> tf.Tensor:
+def tensor_punctuation_separator(x: tf.Tensor) -> tf.Tensor:
   """Separates punctuation at the end of word and end of line.
-  In behavior this function is identical to _punctuation_separator
-  above.  The only difference is that this acts on TF Tensors rather
-  than strings. """
+
+  In behavior this function is identical to punctuation_separator
+  above. The only difference is that this acts on TF Tensors rather
+  than strings."""
   punctuation_chars = ['.', ',', ':', ';', '?', '!']
   special_chars = ['.', '?']  # regex chars
 
@@ -75,36 +64,43 @@ def _tensor_punctuation_separator(x: tf.Tensor) -> tf.Tensor:
       x = strings.regex_replace(x, f'{c} ', f' {c} ')
   return x
 
+def lowercase_strip(x: str) -> str:
+  """Lowercases and strips punctuation.
 
-def text_generator(dataset,
-                   split,
-                   language,
-                   num_examples,
-                   lower=True,
-                   separate_punctuation=True):
-  """Given a dataset (formatted for TFDS paracrawl translation dataset,
-  returns a generator which yields single-language examples from that
-  dataset, one at a time as strings
+  Can be used as a transform_fn for text_generator()."""
+
+  return punctuation_separator(x.lower())
+
+def text_generator(dataset: dict,
+                   split: str,
+                   language: str,
+                   num_examples: int,
+                   transform_fn: Optional[Callable[[str],str]]=None):
+  """Builds a generator from a TF dataset.
+
+  Given a dataset, returns a generator which yields single-language examples
+  from that dataset, one at a time as strings.
 
   Arguments:
-    dataset - TFDS dataset
-    split - e.g., 'train', 'test'.  dataset[split] should yield an iterable
-    language - which language to generate text from.
-               dataset[split] items should have the language as a key
-    num_examples - desired length of the generator
-    lower - bool, whether to lowercase each sentence
+    dataset: dictionary of datasets.
+    split: 'train', 'test', etc.  dataset[split] should yield an iterable.
+    language: which language to generate text from.
+    transform_fn: string transformation, defaults to identity fn.
+    num_examples: desired length of the generator.
   """
 
-  transform_fn = _get_transform_fn(lower, separate_punctuation)
+  # transform_fn defaults to identity
+  if transform_fn is None:
+    transform_fn = lambda x: x
 
   it = iter(dataset[split])
   for count in range(num_examples):
     yield transform_fn(next(it)[language].numpy().decode('UTF-8'))
 
-
 def build_vocab_tr(corpus_generator, vocab_size, split_fun=str.split):
   """Builds a vocab file from a text generator for translation.
-  Unlike buld_vocab() below, these vocabularies will have 3
+
+  Unlike build_vocab() below, these vocabularies will have 3
   reserved tokens:
     <unk> - unknown
     <bos> - beginning of sentence

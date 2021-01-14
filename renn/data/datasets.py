@@ -3,12 +3,11 @@
 import tensorflow_datasets as tfds
 import tensorflow_text as text
 import tensorflow as tf
-tf.compat.v1.enable_eager_execution()
 
 import os
 
 from renn import utils
-from renn.data.tokenizers import load_tokenizer, SEP, _punctuation_separator, _tensor_punctuation_separator
+from renn.data.tokenizers import load_tokenizer, SEP, tensor_punctuation_separator
 from renn.data import data_utils
 
 __all__ = [
@@ -46,7 +45,7 @@ def tokenize_w_punctuation(tokenizer):
   """Text processing function which splits off punctuation."""
   wsp = text.WhitespaceTokenizer()
   return utils.compose(tokenizer.tokenize, wsp.tokenize,
-                       _tensor_punctuation_separator, text.case_fold_utf8)
+                       tensor_punctuation_separator, text.case_fold_utf8)
 
 
 def padded_batch(dset, batch_size, sequence_length, label_shape=()):
@@ -108,14 +107,11 @@ def paracrawl(language_pair,
               transform_fn=utils.identity,
               filter_fn=None,
               data_dir=None):
-  """Loads any of the paracrawl datasets of parallel corpora
-  for translation from TensorFlow Datasets
-  (see https://www.tensorflow.org/datasets/catalog/para_crawl)
+  """Loads a paracrawl translation dataset from TFDS.
 
   Arguments:
-    language_pair - str, e.g. 'ende', specifying both languages
-    vocab_files - List[str], a list of two files containing the vocabulary
-                             for each of the languages in language_pair
+    language_pair: str, e.g. 'ende', specifying both languages.
+    vocab_files: List[str], vocab filenames for each language.
   """
 
   PARACRAWL_LANGUAGE_PAIRS = [
