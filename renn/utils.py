@@ -88,7 +88,7 @@ def build_mask(max_length: int):
 
   For example, `f = build_mask(5)` returns a function that generates masks of
   total length 5. Calling this function with an array of integers, e.g.
-  f([2, 3]), will return an binary (mask) array:
+  f(jnp.array([2, 3])), will return a binary (mask) array:
     [[1., 1., 0., 0., 0.],
      [1., 1., 1., 0., 0.]]
 
@@ -103,7 +103,7 @@ def build_mask(max_length: int):
       a binary mask where
   """
 
-  def mask_fun(index):
+  def mask_fun(index: jnp.array) -> jnp.array:
     """Builds a binary mask."""
     return jnp.where(
         jnp.arange(max_length) < index, jnp.ones(max_length),
