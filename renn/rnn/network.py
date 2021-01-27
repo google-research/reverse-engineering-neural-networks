@@ -136,25 +136,25 @@ def timescale(eigenvalues):
   """Converts eigenvalues into approximate time constants."""
   return -1. / np.log(np.abs(eigenvalues))
 
-def positional_encoding_matrix(seq_len, d_model, timescale=10000):
+def positional_encoding(seq_len, model_dim, timescale=10000):
   """
   Returns positional encoding values.
   Assumes seq dimensions are (batch, seq_len, word_space)
 
   Output shape:
-    seq_len x d_model
+    seq_len x model_dim
   """
 
-  if d_model % 2 != 0:
+  if model_dim % 2 != 0:
     raise ValueError("Embedding dimension must be even")
 
   positions = jnp.arange(seq_len)
-  i = jnp.arange(d_model//2)
-  angular_frequencies = 1/jnp.power(timescale, 2*i/d_model)
+  i = jnp.arange(model_dim//2)
+  angular_frequencies = 1/jnp.power(timescale, 2*i/model_dim)
 
   angles = jnp.outer(positions, angular_frequencies)
-  cosine = jnp.cos(angles) # seq_len, d_model // 2
-  sine = jnp.sin(angles) # seq_len, d_model // 2
+  cosine = jnp.cos(angles) # seq_len, model_dim // 2
+  sine = jnp.sin(angles) # seq_len, model_dim // 2
 
   pos_enc = jnp.concatenate([cosine, sine], axis=1)
 
