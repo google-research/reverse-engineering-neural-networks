@@ -35,7 +35,7 @@ setup(
     author='Niru Maheswaranathan',
     author_email='nirum@google.com',
     packages=find_packages(exclude=["examples"]),
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     install_requires=[
         'numpy >=1.12',
         'jax',
