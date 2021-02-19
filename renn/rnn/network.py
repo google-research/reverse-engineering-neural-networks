@@ -135,3 +135,27 @@ def eigsorted(jac):
 def timescale(eigenvalues):
   """Converts eigenvalues into approximate time constants."""
   return -1. / np.log(np.abs(eigenvalues))
+
+def positional_encoding(seq_len, embed_dim, timescale=10000):
+  """
+  Returns positional encoding values.
+  Assumes seq dimensions are (batch, seq_len, word_space)
+
+  Output shape:
+    seq_len x embed_dim
+  """
+
+  if embed_dim % 2 != 0:
+    raise ValueError("Embedding dimension must be even")
+
+  positions = jnp.arange(seq_len)
+  i = jnp.arange(embed_dim//2)
+  angular_frequencies = 1/jnp.power(timescale, 2*i/embed_dim)
+
+  angles = jnp.outer(positions, angular_frequencies)
+  cosine = jnp.cos(angles) # seq_len, embed_dim // 2
+  sine = jnp.sin(angles) # seq_len, embed_dim // 2
+
+  pos_enc = jnp.concatenate([cosine, sine], axis=1)
+
+  return pos_enc
